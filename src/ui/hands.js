@@ -79,11 +79,13 @@ function handsSet(tg){
    col.setAttribute('height',(c[1]+.5).toFixed(2));col.setAttribute('class','col f-'+fo[0]);col.style.display='';
   }else col.style.display='none';
  }
+ handsStart();
 }
 // Töğri tugma bosilganda: barmoq "bosadi"
 function handsPress(){
  if(HA.act&&FD[HA.act])FD[HA.act].pulse=1;
  if(HA.sft&&FD[HA.sft])FD[HA.sft].pulse=.6;
+ handsStart();
 }
 
 const S2=v=>v.toFixed(3);
@@ -111,7 +113,8 @@ function drawFinger(f){
  f.nl.setAttribute('transform',`translate(${S2(tx-ux*wt*.36)} ${S2(ty-uy*wt*.36)}) rotate(${(Math.atan2(dy,dx)*180/Math.PI+90).toFixed(1)})`);
 }
 function handsStep(){
- // qöl (kaft) uzanayotgan barmoq tomon sal siljiydi
+ // qöl (kaft) uzanayotgan barmoq tomon sal siljiydi. Qaytaradi: harakat davom etyaptimi
+ let mv=false;
  const tg={l:[0,0],r:[0,0]};
  [[HA.act,1],[HA.sft,.5]].forEach(([id,w])=>{
   if(!id||!FD[id]||!HT[id])return;
@@ -119,14 +122,19 @@ function handsStep(){
   tg[id[0]]=[(t[0]-f.rx)*k*.8,(t[1]-f.ry)*k];
  });
  ['l','r'].forEach(s=>{const h=HM[s];
-  h.x+=(tg[s][0]-h.x)*.2;h.y+=(tg[s][1]-h.y)*.2;
-  h.g.setAttribute('transform',`translate(${S2(h.x)} ${S2(h.y)})`)});
+  const dx=tg[s][0]-h.x,dy=tg[s][1]-h.y;
+  if(Math.abs(dx)>.002||Math.abs(dy)>.002){mv=true;h.x+=dx*.25;h.y+=dy*.25;h.g.setAttribute('transform',`translate(${S2(h.x)} ${S2(h.y)})`)}});
  for(const id in FD){
   const f=FD[id],h=HM[id[0]];
   const t=HT[id]?[HT[id][0]-h.x,HT[id][1]-h.y]:[f.rx,f.ry];
-  f.cx+=(t[0]-f.cx)*.3;f.cy+=(t[1]-f.cy)*.3;f.pulse*=.8;
-  drawFinger(f);
+  const dx=t[0]-f.cx,dy=t[1]-f.cy,busy=Math.abs(dx)>.003||Math.abs(dy)>.003||f.pulse>.01;
+  if(busy||f.dr){
+   f.cx+=dx*.3;f.cy+=dy*.3;f.pulse=f.pulse>.01?f.pulse*.8:0;
+   drawFinger(f);f.dr=busy;
+  }
+  if(busy)mv=true;
  }
+ return mv;
 }
-function handsLoop(){HR=0;if($('#pr').hidden)return;handsStep();HR=requestAnimationFrame(handsLoop)}
-function handsStart(){if(!HR)HR=requestAnimationFrame(handsLoop)}
+function handsLoop(){HR=0;if($('#pr').hidden||$('#hsv').style.display=='none')return;if(handsStep())HR=requestAnimationFrame(handsLoop)}
+function handsStart(){if(!HR&&$('#hsv').style.display!='none')HR=requestAnimationFrame(handsLoop)}

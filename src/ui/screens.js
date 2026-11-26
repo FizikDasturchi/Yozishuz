@@ -40,6 +40,7 @@ function home(){
 }
 
 /* ---------- Maşq ---------- */
+// Matn: har bir söz (iloji bö'lsa) faqat bir marta; bank kam bölsa — ençi bilan 2 marta
 function gen(){
  const s=CL.sc[CI],t=s.t,K=CL.k||[];
  if(t=='d')return Array.from({length:8},(_,i)=>i&&s.pv.length&&Math.random()<.35?R(s.pv):s.c).join('');
@@ -49,28 +50,36 @@ function gen(){
   const gs=Array.from({length:8},()=>Array.from({length:2+Math.random()*2|0},()=>R(pool)).join(''));
   if(reach.length)for(let i=0;i<3;i++)gs[i*2+1]=R(reach);
   return gs.join(' ')}
- if(t=='w')return sh(CL.w.concat(CL.w)).slice(0,8).join(' ');
- if(t=='m')return sh(CL.cw.concat(CL.cw)).slice(0,10).join(' ');
+ if(t=='w')return wordsOf(CL.w,8).join(' ');
+ if(t=='m')return wordsOf(CL.cw,10).join(' ');
  let p=CL.cw;
  if(t=='p'){const wk=weak(),f=p.filter(w=>[...w.toLowerCase()].some(c=>wk.includes(c)));if(f.length>=5)p=f}
  if(!p.length)p=CL.lk.map(c=>c+c+c);
- return [0,1,2].map(()=>sh(p).join(' ')).join(' ');
+ const u=pickN(p,120);
+ return u.concat(sh(u)).join(' ');
 }
 function openPr(){ac();if(document.activeElement)document.activeElement.blur();show('pr');start();handsStart()}
 function begin(i){CL=ALL[i];const d=dn(CL);CI=d>=CL.sc.length?0:d;openPr()}
 function problem(){const l=[...ALL].reverse().find(x=>dn(x)>0)||ALL[0];
  CL={id:'pk',pk:1,t:'Problem harflar',lk:l.lk,cw:l.cw,sc:[{t:'p'}]};CI=0;openPr()}
 function gStop(){if(S.game&&S.game.stop)S.game.stop()}
-function exit(){clearInterval(S.iv);gStop();home()}
+function exit(){clearInterval(S.iv);gStop();$('#hsv').style.display='';home()}
+let GF=0;
 function start(){
  clearInterval(S.iv);gStop();const s=CL.sc[CI];
  // t0 - birinçi bosiş vaqti, tl - öxirgi töğri bosiş vaqti (tezlik hisobi uçun)
- S={text:'',i:0,err:0,tot:0,t0:0,tl:0,done:false,bad:false,tm:s.t=='p'?120:s.t=='a'?60:0,find:s.t=='f',fc:s.c,found:false,gm:s.t=='G',game:null,lost:false};
+ S={text:'',i:0,err:0,tot:0,t0:0,tl:0,done:false,bad:false,tm:s.t=='p'?120:s.t=='a'?60:0,find:s.t=='f',fc:s.c,found:false,gm:s.t=='G',game:null,lost:false,ending:0,endAt:0,resAt:0,tg:null,lvh:''};
  if(!S.find&&!S.gm)S.text=gen();
  $('#res').hidden=true;$('#res').innerHTML='';$('#play').hidden=false;
  $('#gm').hidden=!S.gm;$('#gm').innerHTML='';
+ $('#hsv').style.display=S.gm?'none':'';   // öyinda qöllar çizilmaydi — yengil va silliq işlaydi
  $('#pt').textContent=CL.t;
- if(S.gm){S.game=GAMES[s.g]();$('#pt').textContent=CL.t+' · '+S.game.title}
+ if(S.gm){
+  let k=s.g;
+  // Söz öyini uçun örganilgan harflardan söz yetarli bölmasa — harf öyiniga almaştiriladi
+  if(['robot','race','rocket'].includes(k)&&gPool(s.kn).length<8)k=['tiles','balloon'][GF++%2];
+  S.game=GAMES[k](s.kn);$('#pt').textContent=CL.t+' · '+S.game.title;
+ }
  $('#sg').innerHTML=CL.sc.map((_,j)=>`<i class="${j<dn(CL)?'f':j==CI?'c':''}"></i>`).join('');
  paint();
 }
@@ -80,7 +89,8 @@ function paint(){
  $('#fc').hidden=!S.find;$('#txt').hidden=S.find||S.gm;$('#lv').hidden=S.find;
  if(S.gm){
   $('#fc').innerHTML='';
-  $('#lv').innerHTML=`<span>Aniqlik: ${S.tot?accOf(S):100}%</span>`+(S.game?`<span>${S.game.status()}</span>`:'');
+  const h=`<span>Aniqlik: ${S.tot?accOf(S):100}%</span>`+(S.game?`<span>${S.game.status()}</span>`:'');
+  if(h!==S.lvh){S.lvh=h;$('#lv').innerHTML=h}
  }else if(S.find){
   const c=S.fc,fg=fing(codeOf[c.toLowerCase()]),up=c!==c.toLowerCase();
   $('#fc').innerHTML=S.found
@@ -96,24 +106,29 @@ function paint(){
   $('#lv').innerHTML=`<span>Tezlik: ${liveWpm(S)}</span><span>Aniqlik: ${S.tot?accOf(S):100}%</span>`+(S.tm?`<span>⏱ ${fmt(left)}</span>`:'');
  }
  const tg=S.gm?(S.game?S.game.target():''):S.find?(S.found?'':S.fc):S.text[S.i];
- $('#kb').innerHTML=kbHTML(tg);
- handsSet(tg);
- let h='';
- if(tg){if(tg==' ')h='Probel — bosh barmoq bilan';else{const c=codeOf[tg.toLowerCase()];h=`<b>${tg}</b> — `+(c?`<b>${cap(c)}</b> tugmasi`:'belgi')+(c&&tg!==tg.toLowerCase()?' + Shift':'')+(c?` · <span class="mut">${fing(c)}</span>`:'')}}
- $('#hint').innerHTML=h;
+ // Klaviatura va qöllar faqat kerakli belgi özgarganda yangilanadi (har bosişda butun klaviatura qayta qurilmaydi)
+ if(tg!==S.tg||S.find){
+  S.tg=tg;
+  $('#kb').innerHTML=kbHTML(tg);
+  if(!S.gm)handsSet(tg);
+  let h='';
+  if(tg){if(tg==' ')h='Probel — bosh barmoq bilan';else{const c=codeOf[tg.toLowerCase()];h=`<b>${tg}</b> — `+(c?`<b>${cap(c)}</b> tugmasi`:'belgi')+(c&&tg!==tg.toLowerCase()?' + Shift':'')+(c?` · <span class="mut">${fing(c)}</span>`:'')}}
+  $('#hint').innerHTML=h;
+ }
 }
 
-// Topish ekranidan keyingisiga
+// Topiş ekranidan keyingisiga
 function adv(){
  if(CI==dn(CL)){P.done[CL.id]=CI+1;P.pts=Math.min(MAXP,P.pts+5);save()}
  CI++;start();
 }
 
 /* ---------- Natija ---------- */
+// Qoida: yutsa (yoki talabni bajarsa) — ENTER keyingisiga; yutqazsa (talabni bajarmasa) — ENTER qaytadan.
 function finish(timeUp){
  if(S.done)return;S.done=true;clearInterval(S.iv);
- const s=CL.sc[CI],wpm=wpmOf(S,timeUp),acc=accOf(S);
- const isG=s.t=='G',okAcc=acc>=PASS,okWpm=isG||wpm>=MIN_WPM,ok=okAcc&&okWpm&&S.i>0&&!S.lost;
+ const s=CL.sc[CI],isG=s.t=='G',wpm=wpmOf(S,timeUp),acc=accOf(S);
+ const okAcc=isG||acc>=PASS,okWpm=isG||wpm>=MIN_WPM,ok=okAcc&&okWpm&&S.i>0&&!S.lost;
  gStop();
  const stars=!ok?0:acc>=96?3:acc>=90?2:1;
  addStats(S,timeUp);
@@ -124,29 +139,33 @@ function finish(timeUp){
   P.pts=Math.min(MAXP,P.pts+gain)}
  save();
  handsSet('');
- if(ok){snd.win(stars);confetti()}else snd.lose();
+ if(ok){snd.win(stars);confetti()}else if(!isG)snd.lose();
  const d=dn(CL),stg=stage(),lo=TH[stg-1],hi=TH[stg],pct=hi?Math.round(100*(P.pts-lo)/(hi-lo)):100;
  const last=CI+1>=CL.sc.length;
  $('#play').hidden=true;
- const r=$('#res');r.hidden=false;
- const title=!ok?'Qayta urinib köring 💪':stars==3?R(['Ajoyib! 🌟','Zör! 🌟','Barakalla! 🌟']):stars==2?'Yaxşi! 👏':'Ötdingiz! 👍';
- const need=[];if(!okAcc)need.push(`aniqlik kamida ${PASS}% bölişi kerak`);if(!okWpm)need.push(`tezlik kamida ${MIN_WPM} söz/daq bölişi kerak`);if(S.lost)need.push('öyinni yutiş kerak');
+ const r=$('#res');r.hidden=false;S.resAt=Date.now();
+ const title=!ok?(isG?'Yutqazdingiz 💪':'Qayta urinib köring 💪'):stars==3?R(['Ajoyib! 🌟','Zör! 🌟','Barakalla! 🌟']):stars==2?'Yaxşi! 👏':'Ötdingiz! 👍';
+ const need=[];if(!okAcc)need.push(`aniqlik kamida ${PASS}% bölişi kerak`);if(!okWpm)need.push(`tezlik kamida ${MIN_WPM} söz/daq bölişi kerak`);
+ const line=isG
+  ?`Aniqligingiz <b>${acc}%</b>${ok?` · <b>+${gain} ball</b>`:'<br><span class="mut">Hiç qiynalmang — yana bir urinib körasiz</span>'}`
+  :`Tezligingiz <b>${wpm}</b> söz/daq, aniqligi <b>${acc}%</b>${ok?` · <b>+${gain} ball</b>`:`<br><span class="mut">Davom etiş uçun ${need.join(', ')}</span>`}`;
+ const goLbl=ok?(last?'Tugatiş':'Davom etiş'):'Qayta urinib köriş';
  r.innerHTML=`<div class="stars">${[0,1,2].map(i=>`<span class="${i<stars?'on':''}" style="animation-delay:${.15+i*.85}s">${i<stars?'★':'☆'}</span>`).join('')}</div>
  <h2>${title}</h2>
- <p class="rs">Tezligingiz <b>${wpm}</b> söz/daq, aniqligi <b>${acc}%</b>${ok?` · <b>+${gain} ball</b>`:`<br><span class="mut">Davom etiş uçun ${need.join(', ')}</span>`}</p>${msg}
+ <p class="rs">${line}</p>${msg}
  <div class="pg"><b>Nihol (${stg}/5)</b> · ${P.pts} ball<div class="pb"><i style="width:${pct}%"></i></div>
  <span class="mut">Kunlik maqsad: ${fmt(P.day[today()]||0)} / ${fmt(GOAL)} · Dars jarayoni: ${d}/${CL.sc.length}</span>
  <div class="sn">${CL.sc.map((_,j)=>`<i class="${j<d?'f':j==CI?'c':''}">${j+1}</i>`).join('')}</div></div>
- <p><button id="bk">« Darslarga qaytiş</button> <button id="rdo">Qayta</button> <button class="pri" id="go" ${ok?'':'disabled'}>Davom etiş</button></p>`;
- $('#bk').onclick=exit;$('#rdo').onclick=start;
- $('#go').onclick=()=>{if(last)exit();else{CI++;start()}};
+ <p><button id="bk">« Darslarga qaytiş</button> ${ok?'<button id="rdo">Qayta</button> ':''}<button class="pri" id="go">${goLbl} <kbd>ENTER</kbd></button></p>`;
+ $('#bk').onclick=exit;if(ok)$('#rdo').onclick=start;
+ $('#go').onclick=()=>{if(!ok)start();else if(last)exit();else{CI++;start()}};
 }
-function confetti(){const e=['⭐','🎉','✨','🌟','🎈'];for(let i=0;i<28;i++){const d=document.createElement('div');d.className='cf';d.textContent=R(e);d.style.left=Math.random()*100+'vw';d.style.animationDelay=Math.random()*.9+'s';d.style.animationDuration=2+Math.random()*1.6+'s';document.body.appendChild(d);setTimeout(()=>d.remove(),4800)}}
+function confetti(){const e=['⭐','🎉','✨','🌟','🎈'],f=document.createDocumentFragment();for(let i=0;i<16;i++){const d=document.createElement('div');d.className='cf';d.textContent=R(e);d.style.left=Math.random()*100+'vw';d.style.animationDelay=Math.random()*.8+'s';d.style.animationDuration=2+Math.random()*1.4+'s';f.appendChild(d);setTimeout(()=>d.remove(),4600)}document.body.appendChild(f)}
 function shake(el){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake')}
 
-// Öyin tugadi (yutdi/yutqazdi): "AMAZING" körsatilgandan keyin natija oynasi
+// Öyin tugadi (yutdi/yutqazdi): e'lon körsatiladi, keyin natija oynasi (ENTER bosilsa — darhol)
 function gameEnd(win){
- if(S.done)return;
- S.lost=!win;
- setTimeout(()=>{if(!S.done)finish()},win?2000:900);
+ if(S.done||S.ending)return;
+ S.ending=1;S.lost=!win;S.endAt=Date.now();
+ setTimeout(()=>{if(!S.done)finish()},win?1700:1300);
 }

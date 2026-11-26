@@ -1,5 +1,7 @@
 /* ============================================================
    input.js — klaviatura bosişlarini qayta işlaş (maşq paytida).
+   ENTER qoidasi: natija oynasida — yutsangiz keyingisiga, yutqazsangiz qaytadan.
+   Öyin tugagan paytda (e'lon körinib turganda) ENTER natijani kutmay şuni darhol bajaradi.
    Depends: config.js, stats.js, sounds.js, hands.js, screens.js
    ============================================================ */
 function charOf(e){
@@ -13,17 +15,24 @@ addEventListener('keydown',e=>{
  if(e.target.tagName=='TEXTAREA'||$('#pr').hidden)return;
  if(e.key=='Escape'){exit();return}
  if(e.key=='Enter'){
-  if(e.repeat)return;
-  const b=!$('#res').hidden?$('#go'):(S.find&&S.found?$('#fgo'):null);
-  if(b&&!b.disabled){e.preventDefault();b.click()}return}
+  e.preventDefault();if(e.repeat)return;
+  const now=Date.now();
+  if(!$('#res').hidden){
+   if(now-S.resAt<300)return;   // tasodifiy qo'şa bosişdan saqlaş
+   const b=$('#go');if(b&&!b.disabled)b.click();
+  }else if(S.gm&&S.ending&&!S.done){
+   if(now-S.endAt<350)return;
+   finish();const b=$('#go');if(b)b.click();   // natijani yozib, darhol keyingisiga / qaytadan
+  }else if(S.find&&S.found){const b=$('#fgo');if(b)b.click()}
+  return}
  if(S.done||(S.find&&S.found))return;
  const c=charOf(e);if(c===null)return;
  e.preventDefault();
  // Tugmani bosib turişda (key repeat) takroriy hodisalar tezlikni sun'iy oşirmasligi uçun rad etiladi
  if(e.repeat)return;
  const now=Date.now();
- click(c===' ');
  if(S.gm){gameKey(c,now);return}
+ click(c===' ');
  if(S.find){
   if(c===S.fc){S.found=true;S.bad=false;handsPress();snd.ding()}else{S.bad=true;snd.bad();shake($('#fc'))}
   paint();return}
@@ -36,7 +45,8 @@ addEventListener('keydown',e=>{
  paint();
 });
 
-// Öyin paytida tugma: öyin özi töğri/xatoni hal qiladi, bu yerda statistika yuritiladi
+// Öyin paytida tugma: öyin özi töğri/xatoni hal qiladi, bu yerda statistika yuritiladi.
+// (Öyinda tugma "tak" tovuşi yöq — öyinning özi musiqiy tovuş çiqaradi.)
 function gameKey(c,now){
  const g=S.game;if(!g||g.over)return;
  const tg=g.target(),r=g.key(c);
@@ -44,12 +54,12 @@ function gameKey(c,now){
  if(!S.t0){S.t0=now;S.tl=now}
  S.tot++;
  if(tg&&tg!==' '){const k=tg.toLowerCase(),v=P.keys[k]=P.keys[k]||{t:0,e:0};v.t++;if(r===0)v.e++}
- if(r===1){S.i++;S.tl=now;handsPress()}else{S.err++;snd.bad();shake($('#gm'))}
+ if(r===1){S.i++;S.tl=now}else{S.err++;snd.bad()}
  paint();
 }
-// Tugma qöyvorilganda yengil tovuş
+// Tugma qöyvorilganda yengil tovuş (öyinda yöq)
 addEventListener('keyup',e=>{
- if(e.target.tagName=='TEXTAREA'||$('#pr').hidden||$('#res').hidden===false)return;
+ if(e.target.tagName=='TEXTAREA'||$('#pr').hidden||$('#res').hidden===false||S.gm)return;
  if(charOf(e)===null)return;
  clickUp();
 });
