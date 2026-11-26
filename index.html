@@ -73,7 +73,7 @@ td,th{padding:2px 10px;text-align:left}
 <div id="top"><div id="tr"></div><div id="st"></div></div>
 <div id="home" class="g"><nav id="side"></nav><div id="units"></div></div>
 <div id="pr" hidden>
- <div class="bar"><button id="ex">« Darslar</button><b id="pt"></b><button id="rd">Qayta</button></div>
+ <div class="bar"><button id="ex">« Darslar</button><b id="pt"></b><button id="rd">Qayta</button><button id="sn">Tovuş ✓</button></div>
  <div class="sg" id="sg"></div>
  <div id="play">
   <div id="fc" class="card" hidden></div>
@@ -85,9 +85,10 @@ td,th{padding:2px 10px;text-align:left}
 <table><tr><th>Harf</th><th>Tugma (QWERTY)</th></tr>
 <tr><td>Ö ö</td><td>W</td></tr><tr><td>Ğ ğ</td><td>[</td></tr><tr><td>Ş ş</td><td>;</td></tr><tr><td>Ç ç</td><td>C</td></tr><tr><td>ʼ (tutuq)</td><td>'</td></tr></table>
 <p style="color:var(--mut)">Bosh harf — Shift bilan. Nuqta va vergul öz joyida. Turk klaviaturasida ö, ğ, ş, ç bor — ular ham qabul qilinadi.</p></details>
-<details><summary>Eski lotindan yangi alifboga konvertor (matnlar uçun)</summary>
+<details><summary>Matn konvertori va söz banki (matnlar uçun)</summary>
 <textarea id="ci" placeholder="Eski lotin matnini qöying: o‘zbek, g‘alaba, shahar, choy..."></textarea>
-<button id="cb">Konvertlaş</button><textarea id="co" readonly></textarea></details>
+<button id="cb">Konvertlaş</button> <button id="wb">Sözlar röyxati</button> <button id="sb">Bankka qöşiş</button> <span id="bn"></span>
+<textarea id="co"></textarea></details>
 <p><button id="rs">Boşidan</button></p>
 </main>
 <script>
@@ -145,13 +146,20 @@ function mk(l){
  if(l.k){const s=[];
   l.k.forEach((c,i)=>s.push({t:'f',c},{t:'d',c,pv:l.k.slice(0,i)}));
   if(l.k.length>1)s.push({t:'g'},{t:'g'});
-  if(l.w)s.push({t:'w'},{t:'w'},{t:'m'});else s.push({t:'g'},{t:'g'});
+  if(l.w&&l.w.length)s.push({t:'w'},{t:'w'},{t:'m'});else s.push({t:'g'},{t:'g'});
   return s}
  if(l.p)return[{t:'p'}];if(l.a)return[{t:'a'}];
  return[0,1,2,3,4].map(()=>({t:'m'}));
 }
+// Söz banki: sözlar harf bo'yiça avtomatik tanlanadi (faqat örganilgan harflardan tuzilgan sözlar)
+let XB=[];try{XB=JSON.parse(localStorage.getItem('yozish.bank'))||[]}catch(e){}
+const BANK=[...new Set(UN.flatMap(u=>u.ls.flatMap(l=>l.w||[])).concat(XB))];
+const typ=(w,s)=>[...w].every(c=>s.has(c));
 const ALL=[];let lk=[],cw=[];
-UN.forEach(u=>u.ls.forEach(l=>{if(l.k){lk=lk.concat(l.k);if(l.w)cw=cw.concat(l.w)}
+UN.forEach(u=>u.ls.forEach(l=>{
+ if(l.k){lk=lk.concat(l.k);const s=new Set([...lk,' ']);
+  if(l.k.every(c=>/[a-zçğöşʼ]/.test(c)))l.w=BANK.filter(w=>typ(w,s)&&[...w].some(c=>l.k.includes(c)));
+  cw=BANK.filter(w=>typ(w,s))}
  l.lk=lk;l.cw=cw;l.id='k'+ALL.length;l.sc=mk(l);ALL.push(l)}));
 const TL=TEXTS.map((t,i)=>({id:'t'+i,t:t.a+': '+t.t,ti:i,lk:[],cw:[],sc:[{t:'t'}]}));
 
@@ -183,7 +191,7 @@ function head(){
 }
 function home(){
  $('#top').hidden=false;$('#home').hidden=false;head();
- $('#side').innerHTML=['Harflarni örganiş','Adabiy matnlar'].map((t,i)=>`<button data-c="${i}" class="${i==course?'c':''}">${t}${i&&!full(ALL[ALL.length-1])?' 🔒':''}</button>`).join('');
+ $('#side').innerHTML=['Harflarni örganiş','Adabiy matnlar'].map((t,i)=>`<button data-c="${i}" class="${i==course?'c':''}">${t}${i&&!full(ALL[ALL.length-1])?' 🔒':''}</button>`).join('')+(w=>`<button data-c="2" ${w.length?'':'disabled'}>Problem harflar${w.length?': '+w.join(' '):''}</button>`)(weak());
  const L=list(),cur=L.findIndex((l,i)=>opened(i)&&!full(l));
  let n=0;
  $('#units').innerHTML=(course?[{t:'Namuna matnlar',ls:TL}]:UN).map(u=>`<h2>${u.t}</h2>`+u.ls.map(l=>{
@@ -195,20 +203,29 @@ function home(){
 const R=a=>a[Math.random()*a.length|0];
 const sh=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
 const weak=()=>Object.entries(P.keys).filter(([c,v])=>v.t>=5&&v.e/v.t>.05).sort((a,b)=>b[1].e/b[1].t-a[1].e/a[1].t).slice(0,3).map(x=>x[0]);
-let S={},CL,CI;
+let S={},CL,CI,SND=true,AC;
+const beep=f=>{if(!SND)return;try{AC=AC||new AudioContext();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;g.gain.value=.05;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+.08)}catch(e){}};
 function gen(){
  const s=CL.sc[CI],t=s.t,K=CL.k||[];
  if(t=='t')return TEXTS[CL.ti].text;
  if(t=='d')return Array.from({length:8},(_,i)=>i&&s.pv.length&&Math.random()<.35?R(s.pv):s.c).join('');
  if(t=='g'){const pool=[...K,...K,...CL.lk.filter(c=>!K.includes(c)).slice(-4)];
-  return Array.from({length:8},()=>Array.from({length:2+Math.random()*2|0},()=>R(pool)).join('')).join(' ')}
+  // uzatiş maşqi: yangi harf + shu barmoq bosadigan boşqa harf (masalan: faf)
+  const reach=[];K.forEach(c=>{const f=fing(codeOf[c.toLowerCase()]);if(f)CL.lk.forEach(n=>{if(n!==c&&codeOf[n.toLowerCase()]&&fing(codeOf[n.toLowerCase()])===f)reach.push(c+n+c)})});
+  const gs=Array.from({length:8},()=>Array.from({length:2+Math.random()*2|0},()=>R(pool)).join(''));
+  if(reach.length)for(let i=0;i<3;i++)gs[i*2+1]=R(reach);
+  return gs.join(' ')}
  if(t=='w')return sh(CL.w.concat(CL.w)).slice(0,8).join(' ');
  if(t=='m')return sh(CL.cw.concat(CL.cw)).slice(0,10).join(' ');
  let p=CL.cw;
  if(t=='p'){const wk=weak(),f=p.filter(w=>[...w.toLowerCase()].some(c=>wk.includes(c)));if(f.length>=5)p=f}
+ if(!p.length)p=CL.lk.map(c=>c+c+c);
  return [0,1,2].map(()=>sh(p).join(' ')).join(' ');
 }
 function begin(i){CL=list()[i];const d=dn(CL);CI=d>=CL.sc.length?0:d;$('#top').hidden=true;$('#home').hidden=true;$('#pr').hidden=false;start()}
+function problem(){const l=[...ALL].reverse().find(x=>dn(x)>0)||ALL[0];
+ CL={id:'pk',pk:1,t:'Problem harflar',lk:l.lk,cw:l.cw,sc:[{t:'p'}]};CI=0;
+ $('#top').hidden=true;$('#home').hidden=true;$('#pr').hidden=false;start()}
 function exit(){clearInterval(S.iv);$('#pr').hidden=true;home()}
 function start(){
  clearInterval(S.iv);const s=CL.sc[CI];
@@ -258,12 +275,12 @@ addEventListener('keydown',e=>{
  if(S.done||(S.find&&S.found))return;
  const c=charOf(e);if(c===null)return;
  e.preventDefault();
- if(S.find){if(c===S.fc){S.found=true;S.bad=false}else S.bad=true;paint();return}
+ if(S.find){if(c===S.fc){S.found=true;S.bad=false}else{S.bad=true;beep(200)}paint();return}
  if(!S.t0){S.t0=Date.now();if(S.tm)S.iv=setInterval(()=>{paint();if(Date.now()-S.t0>=S.tm*1000)finish()},500)}
  const tg=S.text[S.i],okk=c===tg;
  S.tot++;
  if(tg!==' '){const k=tg.toLowerCase(),v=P.keys[k]=P.keys[k]||{t:0,e:0};v.t++;if(!okk)v.e++}
- if(okk){S.bad=false;S.i++;if(S.i>=S.text.length){finish();return}}else{S.err++;S.bad=true}
+ if(okk){S.bad=false;S.i++;if(S.i>=S.text.length){finish();return}}else{S.err++;S.bad=true;beep(200)}
  paint();
 });
 
@@ -279,7 +296,7 @@ function finish(){
  const stars=!ok?0:acc>=98?3:acc>=94?2:1;
  P.n++;P.sw+=wpm;P.sa+=acc;P.sec+=sec;P.day[today()]=(P.day[today()]||0)+sec;
  let gain=0,msg='';
- if(ok){const first=CI==dn(CL);
+ if(ok){const first=!CL.pk&&CI==dn(CL);
   gain=first?(s.t=='p'?30:s.t=='a'?50:10+stars*3):2;
   if(first){P.done[CL.id]=CI+1;if(full(CL))msg='<p><b>Dars tugadi!</b></p>'}
   P.pts=Math.min(MAXP,P.pts+gain)}
@@ -300,8 +317,9 @@ function finish(){
 }
 
 $('#units').onclick=e=>{const b=e.target.closest('button');if(b&&!b.disabled)begin(+b.dataset.i)};
-$('#side').onclick=e=>{const b=e.target.closest('button');if(b){course=+b.dataset.c;home()}};
+$('#side').onclick=e=>{const b=e.target.closest('button');if(b&&!b.disabled){if(b.dataset.c=='2')problem();else{course=+b.dataset.c;home()}}};
 $('#ex').onclick=exit;$('#rd').onclick=()=>start();
+$('#sn').onclick=e=>{SND=!SND;e.target.textContent='Tovuş '+(SND?'✓':'✗')};
 $('#rs').onclick=e=>{const b=e.target;
  if(!b.dataset.s){b.dataset.s=1;b.textContent='Aniqmi? Yana bosing';setTimeout(()=>{delete b.dataset.s;b.textContent='Boşidan'},3000);return}
  P={done:{},pts:0,n:0,sw:0,sa:0,sec:0,day:{},keys:{}};save();delete b.dataset.s;b.textContent='Boşidan';exit();
@@ -315,6 +333,9 @@ function conv(s){
   .replace(/'/g,'ʼ');
 }
 $('#cb').onclick=()=>{$('#co').value=conv($('#ci').value)};
+// Matndan chastota bo'yiça sözlar röyxati (yangi alifboda)
+$('#wb').onclick=()=>{const c={};(conv($('#ci').value).toLowerCase().match(/[\p{L}ʼ]+/gu)||[]).forEach(w=>{if(w.length>1&&w.length<12&&/^[abdefghijklmnopqrstuvxyzçğöşʼ]+$/.test(w))c[w]=(c[w]||0)+1});$('#co').value=Object.entries(c).sort((a,b)=>b[1]-a[1]).map(x=>x[0]).join(' ')};
+$('#sb').onclick=()=>{const n=$('#co').value.toLowerCase().split(/\s+/).filter(Boolean);try{localStorage.setItem('yozish.bank',JSON.stringify([...new Set(XB.concat(n))].slice(0,5000)));$('#bn').textContent=n.length+' söz saqlandi. Sahifani yangilang.'}catch(e){$('#bn').textContent='Saqlab bölmadi'}};
 home();
 </script>
 </body>
