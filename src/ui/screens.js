@@ -77,7 +77,7 @@ function start(){
  if(S.gm){
   let k=s.g;
   // Söz öyini uçun örganilgan harflardan söz yetarli bölmasa — harf öyiniga almaştiriladi
-  if(['robot','race','rocket'].includes(k)&&gPool(s.kn).length<8)k=['tiles','balloon'][GF++%2];
+  if(['robot','race','rocket'].includes(k)&&gPool(s.kn).length<8)k=['tiles','climb'][GF++%2];
   S.game=GAMES[k](s.kn);$('#pt').textContent=CL.t+' · '+S.game.title;
  }
  $('#sg').innerHTML=CL.sc.map((_,j)=>`<i class="${j<dn(CL)?'f':j==CI?'c':''}"></i>`).join('');

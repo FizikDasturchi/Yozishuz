@@ -81,7 +81,7 @@ function wordsOf(pool,n){
 }
 
 // O'yin turlari: harf o'yinlari har doim bor; söz o'yinlari faqat söz yetarli bölganda
-const WG=['tiles','robot','race','balloon','rocket'],LG=['tiles','balloon'];
+const WG=['tiles','robot','race','climb','rocket'],LG=['tiles','climb'];
 const okW=w=>/^[a-zçğöşʼ]{3,7}$/.test(w);
 let GI=0;
 function mk(l,prev){

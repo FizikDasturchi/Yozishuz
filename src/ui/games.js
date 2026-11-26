@@ -3,7 +3,7 @@
    Harf öyinlari (söz kerak emas):
      tiles   — Harf plitkalari (Piano Tiles): har bir harf klaviaturadagi öz ustuni bö'yiça
                yuqoridan yakka-yakka tüşadi; eng pastdagisini bosing.
-     balloon — Sharlar: harfli sharlar uçadi, töğri harfni bosib portlating.
+     climb   — Robot (harf guruhlari): harflarni yozsangiz robot platformaga yürib boradi va sakraydi.
    Söz öyinlari (faqat ma'noli sözlar):
      robot   — Sakrovçi robot : sözni yozsangiz robot keyingi platformaga sakraydi.
      race    — Poyga          : matnni tez yozib, boy mașinadan oldin finişga yetib keling.
@@ -172,60 +172,6 @@ GAMES.tiles=function(kn){
  return G;
 };
 
-/* ---------- 2) Sharlar ---------- */
-GAMES.balloon=function(kn){
- const st=gStage(),G={title:'Sharlar',over:false},N=20,seq=gSeq(kn,N);
- const COL=['#ff5d85','#ff9433','#f2bd00','#3dbb5a','#1fb0d6','#4a86ff','#9b5cff','#ec4fbe'];
- let bl=[],sp=0,done=0,lives=3,t=0,since=9,flash=0;
- const rad=()=>clamp(st.W/21,27,38);
- function spawn(){
-  const r=rad();let x=0,ok=false;
-  for(let i=0;i<10&&!ok;i++){x=r+14+Math.random()*(st.W-2*r-28);ok=bl.every(b=>Math.abs(b.x-x)>r*2.4||b.y<st.H-r*5)}
-  bl.push({ch:seq[sp],x,y:st.H+r*1.5,ph:Math.random()*6,c:COL[sp%COL.length]});sp++;
- }
- function upd(dt){
-  t+=dt;flash=Math.max(0,flash-dt*3);
-  if(G.over)return;
-  since+=dt;
-  if(sp<N&&bl.length<3&&since>=Math.max(.9,1.9-sp*.045)){since=0;spawn()}
-  const v=st.H*(.15+.1*sp/N),r=rad();
-  for(const b of bl)b.y-=v*dt;
-  for(let i=bl.length-1;i>=0;i--){const b=bl[i];
-   if(b.y-r*1.3<=0){bl.splice(i,1);lives--;flash=1;snd.miss();burst(st,b.x,10,'#ff5a5f',10);pop(st,b.x,40,'−♥','#ff8a8e');if(lives<=0)finishGame(G,false)}}
- }
- const top=()=>bl.reduce((a,b)=>!a||b.y<a.y?b:a,null);
- function drw(X,W,H){
-  sky(X,W,H,'#6cc4f5','#e4f6ff');clouds(X,W,H,t,0);
-  X.fillStyle='#8fd67a';X.beginPath();X.ellipse(W*.3,H+60,W*.7,90,0,0,TAU);X.ellipse(W*.85,H+70,W*.5,80,0,0,TAU);X.fill();
-  const r=rad(),tp=top();
-  for(const b of bl){
-   const x=b.x+Math.sin(t*1.7+b.ph)*10,y=b.y,cur=b===tp;
-   X.strokeStyle='rgba(60,80,100,.55)';X.lineWidth=1.5;X.beginPath();X.moveTo(x,y+r*1.18);X.quadraticCurveTo(x+Math.sin(t*2+b.ph)*8,y+r*1.9,x,y+r*2.5);X.stroke();
-   if(cur){X.fillStyle='rgba(255,255,255,.55)';X.beginPath();X.ellipse(x,y,r*1.3,r*1.5,0,0,TAU);X.fill()}
-   X.fillStyle=b.c;X.beginPath();X.ellipse(x,y,r,r*1.18,0,0,TAU);X.fill();
-   X.beginPath();X.moveTo(x,y+r*1.12);X.lineTo(x-6,y+r*1.38);X.lineTo(x+6,y+r*1.38);X.closePath();X.fill();
-   X.fillStyle='rgba(255,255,255,.35)';X.beginPath();X.ellipse(x-r*.36,y-r*.42,r*.2,r*.34,-.5,0,TAU);X.fill();
-   X.font=`800 ${r*1.05}px ${MONO}`;X.textAlign='center';X.textBaseline='middle';X.lineWidth=4;X.strokeStyle='rgba(20,30,60,.45)';X.strokeText(b.ch,x,y+2);X.fillStyle='#fff';X.fillText(b.ch,x,y+2);
-  }
-  if(flash>0){X.fillStyle=`rgba(255,90,95,${flash*.18})`;X.fillRect(0,0,W,H)}
-  hud(X,W,lives,3,done/N,done+' / '+N);
- }
- G.key=c=>{
-  if(G.over)return -1;
-  if(!bl.length)return -1;
-  let b=null;for(const q of bl)if(q.ch===c&&(!b||q.y<b.y))b=q;
-  if(!b)return 0;
-  bl.splice(bl.indexOf(b),1);done++;snd.pop();
-  burst(st,b.x,b.y,b.c,16);pop(st,b.x,b.y,'+1','#fff');
-  if(done>=N)finishGame(G,true);
-  return 1;
- };
- G.target=()=>{const b=top();return b?b.ch:''};
- G.status=()=>`${done} / ${N}`;
- loop(G,st,upd,drw);
- return G;
-};
-
 /* ---------- 3) Sakrovçi robot ---------- */
 function drawRobot(X,x,y,sx,sy,t){
  X.save();X.translate(x,y);X.scale(sx,sy);
@@ -238,14 +184,17 @@ function drawRobot(X,x,y,sx,sy,t){
  X.strokeStyle='#24384d';X.lineWidth=1.8;X.beginPath();X.arc(0,-26,4.5,.2,Math.PI-.2);X.stroke();
  X.restore();
 }
-GAMES.robot=function(kn){
- const st=gStage(),G={title:'Sakrovçi robot',over:false},words=gWords(kn,6),N=words.length,SP=98;
+// Robot: yuqori platformadagi belgilarni yozsangiz robot şu tomonga yürib boradi, hammasi yozilgach — platformaga sakraydi.
+// robot — sözlar bilan, climb — harf guruhlari bilan (söz kerak emas).
+function robotGame(kn,items,title){
+ const st=gStage(),G={title,over:false},N=items.length,SP=98;
  const PX=[.14,.55,.2,.6,.12,.52,.3];
- let idx=0,pos=0,t=0,cam=0,jm=null,rx=0,ry=0,bad=0,sq=1,pf=0;
+ let idx=0,pos=0,t=0,cam=0,jm=null,rx=0,ry=0,bad=0,sq=1,pf=0,fc=1,mv=false;
  const pw=()=>clamp(st.W*.3,150,250);
  const cxOf=i=>{const w=pw();return w/2+12+PX[i%7]*(st.W-w-24)};
  const syOf=i=>cam-i*SP;
  const camT=()=>st.H*.74+pf*SP;
+ const wx=()=>idx>=N?cxOf(N):lerp(cxOf(idx),cxOf(idx+1),pos/items[idx].length);
  cam=camT();rx=cxOf(0);ry=0;
  function upd(dt){
   t+=dt;bad=Math.max(0,bad-dt);
@@ -253,10 +202,15 @@ GAMES.robot=function(kn){
   if(jm){
    jm.t+=dt;const u=Math.min(1,jm.t/.55),e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
    rx=lerp(jm.x0,jm.x1,e);ry=lerp(jm.y0,jm.y1,u)-Math.sin(Math.PI*u)*72;pf=lerp(jm.a,jm.b,u);
-   sq=u<.12?lerp(1,.8,u/.12):u>.88?lerp(1.12,1,(u-.88)/.12):1.1;
+   sq=u<.12?lerp(1,.8,u/.12):u>.88?lerp(1.12,1,(u-.88)/.12):1.1;mv=false;
    if(u>=1){jm=null;sq=.78;snd.land();pf=idx;burst(st,rx,cam+ry,'#fff6c8',8);
     if(idx>=N)finishGame(G,true)}
-  }else sq+=(1-sq)*Math.min(1,dt*10);
+  }else{
+   const tx=wx();mv=Math.abs(tx-rx)>1.2;
+   if(mv)fc=tx>rx?1:-1;
+   rx+=(tx-rx)*Math.min(1,dt*7);
+   sq+=(1-sq)*Math.min(1,dt*10);
+  }
  }
  function drw(X,W,H){
   sky(X,W,H,'#5db8f0','#d7f1ff');
@@ -268,31 +222,35 @@ GAMES.robot=function(kn){
    const y=syOf(i);if(y<-80||y>H+90)continue;
    const x=cxOf(i)-w/2;
    rr(X,x,y,w,16,8);X.fillStyle='#a8703a';X.fill();rr(X,x,y+10,w,6,3);X.fillStyle='#7a4a22';X.fill();
-   if(i==N){X.font='36px sans-serif';X.textAlign='center';X.textBaseline='alphabetic';X.fillText('⭐',cxOf(i),y-8)}
-   else if(i>=idx)drawWord(X,words[i],cxOf(i),y-30,i==idx?clamp(W/26,22,30):20,i==idx?pos:-1,bad>0);
-   else drawWord(X,words[i],cxOf(i),y-30,20,words[i].length,false);
+   if(i==N){X.font='30px sans-serif';X.textAlign='center';X.textBaseline='alphabetic';X.fillText('⭐',x+w-16,y-4)}
+   if(i>=1){const k=i-1,it=items[k];
+    if(k>=idx)drawWord(X,it,cxOf(i),y-30,k==idx?clamp(W/26,22,30):20,k==idx?pos:-1,k==idx&&bad>0);
+    else drawWord(X,it,cxOf(i),y-30,20,it.length,false);}
   }
-  drawRobot(X,rx,cam+ry,clamp(2-sq,.85,1.2),sq,t);
+  const bob=mv?Math.abs(Math.sin(t*16))*4:0;
+  drawRobot(X,rx,cam+ry-bob,clamp(2-sq,.85,1.2)*fc,sq,t);
   hud(X,W,0,0,idx/N,idx+' / '+N);
  }
  G.key=c=>{
   if(G.over||jm||idx>=N)return -1;
-  const w=words[idx];
+  const w=items[idx];
   if(c===w[pos]){
    pos++;
    if(pos>=w.length){
     snd.word();idx++;pos=0;
-    jm={t:0,x0:rx,y0:ry,x1:cxOf(idx),y1:-idx*SP,a:idx-1,b:idx};snd.jump();
+    jm={t:0,x0:rx,y0:ry,x1:cxOf(idx),y1:-idx*SP,a:idx-1,b:idx};fc=jm.x1>=jm.x0?1:-1;snd.jump();
    }
    return 1;
   }
   bad=.3;return 0;
  };
- G.target=()=>idx<N&&!jm?words[idx][pos]:'';
+ G.target=()=>idx<N&&!jm?items[idx][pos]:'';
  G.status=()=>`Platforma ${Math.min(idx+1,N)} / ${N}`;
  loop(G,st,upd,drw);
  return G;
-};
+}
+GAMES.robot=kn=>robotGame(kn,gWords(kn,6),'Sakrovçi robot');
+GAMES.climb=kn=>{const q=gSeq(kn,18),g=[];for(let i=0;i<q.length;i+=3)g.push(q.slice(i,i+3).join(''));return robotGame(kn,g,'Sakrovçi robot')};
 
 /* ---------- 4) Poyga ---------- */
 function drawCar(X,x,y,c,wa){
