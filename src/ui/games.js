@@ -43,7 +43,7 @@ function gSeq(kn,n){
 }
 
 /* ---------- umumiy: canvas, sikl, zarralar, e'lon ---------- */
-function stage(){
+function gStage(){
  const gm=$('#gm');gm.innerHTML='';
  const H=clamp(Math.round(innerHeight*.44),270,400);
  const cv=document.createElement('canvas');cv.style.height=H+'px';gm.appendChild(cv);
@@ -114,7 +114,7 @@ function drawWord(X,w,cx,cy,size,pos,bad,dark){
 
 /* ---------- 1) Harf plitkalari (Piano Tiles) ---------- */
 GAMES.tiles=function(kn){
- const st=stage(),G={title:'Harf plitkalari',over:false},N=24,seq=gSeq(kn,N);
+ const st=gStage(),G={title:'Harf plitkalari',over:false},N=24,seq=gSeq(kn,N);
  let live=[],pops=[],sp=0,done=0,lives=3,combo=0,flash=0,t=0;
  const lane=ch=>{const c=codeOf[ch.toLowerCase()],k=c&&KEYC[c];return k?k[0]/15*st.W:st.W/2};
  const tw=()=>clamp(st.W/15*.9,38,66),th=()=>tw()*1.3,floor=()=>st.H-18;
@@ -174,7 +174,7 @@ GAMES.tiles=function(kn){
 
 /* ---------- 2) Sharlar ---------- */
 GAMES.balloon=function(kn){
- const st=stage(),G={title:'Sharlar',over:false},N=20,seq=gSeq(kn,N);
+ const st=gStage(),G={title:'Sharlar',over:false},N=20,seq=gSeq(kn,N);
  const COL=['#ff5d85','#ff9433','#f2bd00','#3dbb5a','#1fb0d6','#4a86ff','#9b5cff','#ec4fbe'];
  let bl=[],sp=0,done=0,lives=3,t=0,since=9,flash=0;
  const rad=()=>clamp(st.W/21,27,38);
@@ -239,7 +239,7 @@ function drawRobot(X,x,y,sx,sy,t){
  X.restore();
 }
 GAMES.robot=function(kn){
- const st=stage(),G={title:'Sakrovçi robot',over:false},words=gWords(kn,6),N=words.length,SP=98;
+ const st=gStage(),G={title:'Sakrovçi robot',over:false},words=gWords(kn,6),N=words.length,SP=98;
  const PX=[.14,.55,.2,.6,.12,.52,.3];
  let idx=0,pos=0,t=0,cam=0,jm=null,rx=0,ry=0,bad=0,sq=1,pf=0;
  const pw=()=>clamp(st.W*.3,150,250);
@@ -305,7 +305,7 @@ function drawCar(X,x,y,c,wa){
  X.restore();
 }
 GAMES.race=function(kn){
- const st=stage(),G={title:'Poyga',over:false},words=gWords(kn,8),text=words.join(' '),total=text.length;
+ const st=gStage(),G={title:'Poyga',over:false},words=gWords(kn,8),text=words.join(' '),total=text.length;
  const cps=1.15+Math.min(.55,Math.max(0,ALL.indexOf(CL))*.03);
  let i=0,bad=0,bot=0,go=false,di=0,db=0,t=0,wa=0,road=0;
  function upd(dt){
@@ -358,7 +358,7 @@ GAMES.race=function(kn){
 
 /* ---------- 5) Raketa ---------- */
 GAMES.rocket=function(kn){
- const st=stage(),G={title:'Raketa',over:false},words=gWords(kn,8),N=words.length;
+ const st=gStage(),G={title:'Raketa',over:false},words=gWords(kn,8),N=words.length;
  let wi=0,pos=0,fuel=70,t=0,alt=0,bad=0,thr=0,on=false,fall=0,lost=false,low=0;
  function upd(dt){
   t+=dt;bad=Math.max(0,bad-dt);thr=Math.max(0,thr-dt*2.2);

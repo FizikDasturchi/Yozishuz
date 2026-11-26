@@ -41,17 +41,17 @@ const UN=[
 
 // Söz banki. Har bir söz — özbek tilida ma'noli. Harflar tartib bilan (örganilgan harflar bö'yiça) avtomatik tanlanadi.
 const WORDS=`
-asal dala kalla kasal salla alla dalda fasl jasad saf ajal
-şakl hasad ahd şaşka gajak hafsala halal jahl
-ikki ilk iş dedi dedik işla gilas eski elak kesak kişi kes kel sel fil ekiş esdalik şişa ikkala ahil asil
+asal dala kalla salla alla dalda fasl
+şakl hafsala halal
+ikki ilk iş dedi dedik işla gilas eski elak kişi kes sel fil ekiş esdalik şişa ikkala ahil asil
 gul usul dolu olis oş asos oila odil sodda kulgi duo lola şola hosil solih kulol oldi gulladi
-ota asr ertak terak turli tuş keldi ketdi sirli dars sirk şahar sahro dori ertaga tirik ketdik keldik turdi urdi ular tola toş ruh tur iloj rost tort dost dostlar otaş sirt tuhfa rohat
-qayta qaysi pul qop payt yiqildi qarsak qisqa pastki yoş poyga qar qora yurak yer yil paşşa qişloq qirq qirol pilla pahta pol qatiq qatra quyoş quş qurt toy qasr sayyora şoyi paypoq pirpirak yaproq oyoq qayiq tuyoq quyi ayiq qulf qiş tuya yoqa parda ayol
-köl tör yöl köp yöq ötkir ğalla ğişt ğayrat ğor töğri öğil öt ğoya ğurur öğri öyla qöy qöl qöşiq qöriq körpa ölka körsat öqi toğ soğ yoğ tuğ ötdi öqiş köprik yölak yöqot töqay köylak
+ota asr ertak terak turli tuş keldi ketdi sirli dars sirk şahar sahro dori ertaga ketdik keldik turdi ular tola toş tur iloj rost tort dost dostlar otaş sirt tuhfa rohat
+qayta qaysi pul qop payt yiqildi qarsak qisqa pastki yoş poyga qar qora yurak yer yil paşşa qişloq qirol pilla pahta pol qatiq qatra quyoş quş toy qasr sayyora şoyi paypoq pirpirak yaproq oyoq qayiq quyi ayiq qulf qiş tuya yoqa parda ayol
+köl tör yöl köp yöq ötkir ğalla ğişt ğayrat ğor töğri öğil ğoya ğurur öyla qöy qöl qöşiq qöriq körpa ölka körsat öqi toğ soğ yoğ tuğ ötdi öqiş köprik yölak yöqot töqay köylak
 non ona men sen bola kitob salom maktab qalam bilan bahor nima bilim mehnat bölim boğ ğalaba olma anor banan şamol baliq bulut bodom mehr maşina maşq maslahat mamlakat mehmon maydon daryo qanot bayroq bino burun beşik inson daftar sinf sinfdoş nom nur nafas namuna nihol nok olmos sabr sabab tomon tamom umid sunbula bu bir bor bil barg bekat kun tun bugun ming tong yangi qanday nega menga senga şunday mana muşuk maymun bulbul bayram baraka baland oltin kumuş aka uka opa singil bobo amaki toğa
 zor xona vaqt uzum yozuv xalq xizmat zavq daraxt kuz qiz xazina vazifa zamin bozor zebra xarita xat xabar xotira xursand zehn yulduz ziyo zamon zargar varaq vatan vodiy viloyat xamir xola xayol tuz qaz tez yoz ozod izla aziz zukko zakovat buvi tovuq uzoq ovoz savol javob sovğa devor dehqon mavzu zavod ziyofat ozuqa oziq zahmat
-çoy çiroy çiroq çaman çaqmoq çiziq çopon çarx çeçak çöl çorşanba çin çelak çamadon çaqaloq çiqiş çaşma çoyxona çiroyli çapan çizma çigit çodir çumçuq çanqoq çavandoz çivin çirik çuqur çegara
-maʼno eʼlon maʼlum taʼlim maʼqul eʼtibor maʼnaviyat taʼsir maʼdan taʼm daʼvo raʼno maʼrifat meʼmor şeʼr taʼmir maʼruza jamʼiyat meʼda
+çoy çiroy çiroq çaman çaqmoq çiziq çopon çarx çeçak çöl çorşanba çin çelak çamadon çaqaloq çiqiş çaşma çoyxona çiroyli çapan çizma çigit çodir çumçuq çanqoq çavandoz çuqur çegara
+maʼno eʼlon maʼlum taʼlim maʼqul eʼtibor maʼnaviyat taʼsir maʼdan taʼm daʼvo raʼno maʼrifat meʼmor şeʼr taʼmir maʼruza jamʼiyat
 `.split(/\s+/).filter(Boolean);
 // Bosh harf bilan boşlanadigan sözlar (Bosh harflar darsidan keyin)
 const CAPS='Ata Ona Özbek Ğalaba Ilm Bahor Qalam Toşkent Samarqand Buxoro Xiva Namangan Andijon Farğona Navoiy Nukus Özbekiston Vatan Zamin Qarşi Termiz'.split(' ');
@@ -59,7 +59,9 @@ const CAPS='Ata Ona Özbek Ğalaba Ilm Bahor Qalam Toşkent Samarqand Buxoro Xiv
 const PH=['Ota, ona.','Bahor keldi.','Köl, boğ.','Qalam, kitob.','Salom, dost.','Quyoş çiqdi.','Men keldim.','Biz keldik.','Toşkent, Buxoro.','Bu bahor.','Qiş keldi, qar yoğdi.','Bulut, yomğir.','Yurt, vatan.'];
 
 let XB=[];try{XB=JSON.parse(localStorage.getItem('yozish.bank'))||[]}catch(e){}
-const BANK=[...new Set(WORDS.concat(CAPS,PH,XB))];
+// Yoqimsiz / ma'nosiz sözlar — banka hech qaçon tüşmaydi (ustoz qöşgan sözlardan ham olib tashlanadi)
+const BLOCK=new Set('kasal jasad ajal hasad jahl kesak urdi qurt öğri çirik çivin öt meʼda ahd kel şaşka gajak saf ruh qirq tuyoq tirik'.split(' '));
+const BANK=[...new Set(WORDS.concat(CAPS,PH,XB))].filter(w=>!BLOCK.has(w.toLowerCase()));
 
 // Xilma-xillik: qaysi söz necha marta berilganini eslab qoladi — kam berilganlari birinçi tanlanadi
 const USED={};
