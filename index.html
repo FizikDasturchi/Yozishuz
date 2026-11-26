@@ -10,17 +10,30 @@
 :root[data-theme="dark"]{color-scheme:dark;--bg:#16181a;--fg:#e9e9e6;--mut:#9a9a96;--bd:#34383b;--sf:#212427;--cur:#5b4b12;--ok:#6fcf8a;--err:#ff7b72;--nw:#26334d;--nx:#8a6a10}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif}
-main{max-width:760px;margin:0 auto;padding:16px}
-header{display:flex;justify-content:space-between;align-items:center}
-h1{font-size:20px;margin:0}
-button{font:inherit;color:inherit;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;cursor:pointer}
-button:disabled{opacity:.4;cursor:default}
-#map{display:flex;flex-wrap:wrap;gap:4px;margin:12px 0}
-#map .c{border-color:var(--fg);font-weight:600}
-#map .d{color:var(--ok)}
-#info{margin:8px 0;color:var(--mut)}
-#tr{text-align:center;color:var(--mut);margin:8px 0}
-#txt{font:22px/1.8 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:14px;min-height:5em}
+main{max-width:900px;margin:0 auto;padding:16px}
+button{font:inherit;color:inherit;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:4px 12px;cursor:pointer}
+button:disabled{opacity:.45;cursor:default}
+h1{font-size:20px;margin:0 0 8px}
+h2{font-size:17px;margin:20px 0 8px}
+#top{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+#tr{display:flex;gap:12px;align-items:center;color:var(--mut)}
+#tr svg{background:var(--sf);border-radius:50%;border:1px solid var(--bd)}
+#st{color:var(--mut)}
+.g{display:grid;grid-template-columns:200px 1fr;gap:20px}
+#side{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+#side .c{border-color:var(--fg);font-weight:600}
+.ls{border:1px solid var(--bd);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:var(--sf)}
+.ls.cur{border-color:var(--fg)}
+.lt{display:flex;align-items:center;gap:8px}
+.lt button{margin-left:auto}
+.no{display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;border:1px solid var(--bd);border-radius:50%;font-size:13px}
+.sg{display:flex;gap:2px;margin-top:8px}
+.sg i{flex:1;height:6px;background:var(--bd);border-radius:2px}
+.sg i.f{background:var(--ok)}
+.sg i.c{background:var(--nx)}
+.hd{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+#tm{margin-left:auto;font-variant-numeric:tabular-nums}
+#txt{font:22px/1.8 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:14px;min-height:5em;margin-top:8px}
 #txt .ok{color:var(--ok)}
 #txt .cur{background:var(--cur);border-bottom:2px solid var(--fg)}
 #txt .bad{background:var(--err);color:#fff}
@@ -35,29 +48,31 @@ button:disabled{opacity:.4;cursor:default}
 details{margin:12px 0}
 textarea{width:100%;min-height:70px;font:inherit;background:var(--sf);color:var(--fg);border:1px solid var(--bd);border-radius:6px;box-sizing:border-box}
 td,th{padding:2px 10px;text-align:left}
+@media(max-width:640px){.g{grid-template-columns:1fr}#side{flex-direction:row}}
 </style>
 </head>
 <body>
 <main>
-<header><h1>yozish.uz <small style="color:var(--mut)">prototip</small></h1><button id="rs">Boşidan</button></header>
-<nav id="map"></nav>
-<div id="tr"></div>
-<section id="info"></section>
-<div id="txt"></div>
-<div id="hint"></div>
-<div id="kb"></div>
-<div id="res" hidden></div>
-<details open><summary>Yangi harflar klaviaturada</summary>
+<h1>yozish.uz <small style="color:var(--mut)">prototip</small></h1>
+<div id="top"><div id="tr"></div><div id="st"></div></div>
+<div id="home" class="g"><nav id="side"></nav><div id="units"></div></div>
+<div id="pr" hidden>
+ <div class="hd"><button id="ex">Çiqiş</button><b id="pt"></b><span id="tm"></span></div>
+ <div class="sg" id="sg"></div>
+ <div id="txt"></div><div id="hint"></div><div id="kb"></div><div id="res" hidden></div>
+</div>
+<details><summary>Yangi harflar klaviaturada</summary>
 <table><tr><th>Harf</th><th>Tugma (QWERTY)</th></tr>
 <tr><td>Ö ö</td><td>W</td></tr><tr><td>Ğ ğ</td><td>[</td></tr><tr><td>Ş ş</td><td>;</td></tr><tr><td>Ç ç</td><td>C</td></tr><tr><td>ʼ (tutuq)</td><td>'</td></tr></table>
 <p style="color:var(--mut)">Bosh harf — Shift bilan. Nuqta va vergul öz joyida. Turk klaviaturasida ö, ğ, ş, ç bor — ular ham qabul qilinadi.</p></details>
 <details><summary>Eski lotindan yangi alifboga konvertor (matnlar uçun)</summary>
 <textarea id="ci" placeholder="Eski lotin matnini qöying: o‘zbek, g‘alaba, shahar, choy..."></textarea>
 <button id="cb">Konvertlaş</button><textarea id="co" readonly></textarea></details>
+<p><button id="rs">Boşidan</button></p>
 </main>
 <script>
 const $=s=>document.querySelector(s);
-const PASS=90, MAXP=800, KEY='yozish.v1';
+const PASS=90,MAXP=2000,GOAL=900,KEY='yozish.v2',TH=[0,300,700,1200,1700];
 // Yangi harflarning joyi: [oddiy, Shift bilan (US), belgi]
 const KEYMAP={KeyW:['w','W','ö'],KeyC:['c','C','ç'],BracketLeft:['[','{','ğ'],Semicolon:[';',':','ş'],Quote:["'",'"','ʼ']};
 const ROWS=[['KeyQ','KeyW','KeyE','KeyR','KeyT','KeyY','KeyU','KeyI','KeyO','KeyP','BracketLeft','BracketRight'],['KeyA','KeyS','KeyD','KeyF','KeyG','KeyH','KeyJ','KeyK','KeyL','Semicolon','Quote'],['KeyZ','KeyX','KeyC','KeyV','KeyB','KeyN','KeyM','Comma','Period','Slash']];
@@ -67,81 +82,107 @@ const cap=c=>KEYMAP[c]?KEYMAP[c][0].toUpperCase():lab(c).toUpperCase();
 const codeOf={};ROWS.flat().forEach(c=>codeOf[lab(c)]=c);
 const EXTRA={'!':'Shift + 1','?':'Shift + /','-':'- (0 yonidagi)'};
 
-// Darajalar: urug'dan daraxtgacha
-const LV=[
-{n:'Uruğ',e:'🌰',k:'asdf',w:['sad','das','fas','asa','dada','sasa','fafa','dasa']},
-{n:'Niş',e:'🌱',k:'jklş',w:['asal','dala','sakla','salla','jasad','şakl','fasl','kalla','alla','kasal','dalda','şal']},
-{n:'Köçat',e:'🌿',k:'gh',w:['hasad','galla','ahd','hal','asal','dala','kasal','fasl','şakl','jasad']},
-{n:'Nihol',e:'🪴',k:'eiou',w:['ikki','ilk','iş','gul','esa','dedi','kelsa','olis','işla','dedik']},
-{n:'Tana',e:'🪵',k:'rt',w:['ota','asr','ertak','otasi','terak','turli','tuş','ketdi','keldi','sirli']},
-{n:'Şox',e:'🌳',k:'qyp',w:['qayta','qaysi','pul','qop','payt','yiqildi','qarsak','qisqa','pastki','yoş','poyga']},
-{n:'Barg',e:'🍃',k:'öğ',w:['köl','tör','yöl','köp','yöq','ötkir','ğalla','ğişt','ğayrat','ğor','töğri','öğil']},
-{n:'Gul',e:'🌸',k:'nmb',w:['non','ona','men','sen','bola','kitob','salom','maktab','qalam','bilan','bahor','nima','bilim','mehnat','bölim','bağ','ğalaba']},
-{n:'Meva',e:'🍎',k:'zxv',w:['zor','zar','xona','vaqt','uzum','yozuv','xalq','xizmat','zavq','daraxt','kuz','qiz','xazina','vazifa','zamin','bozor']},
-{n:'Daraxt',e:'🌲',k:'ç',w:['çoy','çiroy','çiroq','çaman','çaqmoq','çiziq','çopon','çarx','çeçak','çöl','çorşanba']},
-{n:'Çinor',e:'🏞️',k:'ʼ',w:['maʼno','eʼlon','maʼlum','taʼlim','maʼqul','eʼtibor','iʼtibor','saʼy','maʼnaviyat','taʼsir']},
-{n:'Bağ',e:'🏡',k:'ÖĞŞÇ.,',w:['Ğalaba!','Özbekiston.','Şahar, bağ.','Çoy içdi.','Qani?','Köl - çiroyli.','Ötkir fikr.','Şoşilma!']},
-{n:'Örmon',e:'🌄',tx:1,w:[]}
+// Harf guruhlari: yangi tugmalar va shu harflardan tuzilgan sözlar
+const GR=[
+{k:'asdf',w:['sad','das','fas','asa','dada','sasa','fafa','dasa']},
+{k:'jklş',w:['asal','dala','sakla','salla','jasad','şakl','fasl','kalla','alla','kasal','dalda','şal']},
+{k:'gh',w:['hasad','galla','ahd','hal','asal','dala','kasal','fasl','şakl','jasad']},
+{k:'eiou',w:['ikki','ilk','iş','gul','esa','dedi','kelsa','olis','işla','dedik']},
+{k:'rt',w:['ota','asr','ertak','otasi','terak','turli','tuş','ketdi','keldi','sirli']},
+{k:'qyp',w:['qayta','qaysi','pul','qop','payt','yiqildi','qarsak','qisqa','pastki','yoş','poyga']},
+{k:'öğ',w:['köl','tör','yöl','köp','yöq','ötkir','ğalla','ğişt','ğayrat','ğor','töğri','öğil']},
+{k:'nmb',w:['non','ona','men','sen','bola','kitob','salom','maktab','qalam','bilan','bahor','nima','bilim','mehnat','bölim','bağ','ğalaba']},
+{k:'zxv',w:['zor','zar','xona','vaqt','uzum','yozuv','xalq','xizmat','zavq','daraxt','kuz','qiz','xazina','vazifa','zamin','bozor']},
+{k:'ç',w:['çoy','çiroy','çiroq','çaman','çaqmoq','çiziq','çopon','çarx','çeçak','çöl','çorşanba']},
+{k:'ʼ',w:['maʼno','eʼlon','maʼlum','taʼlim','maʼqul','eʼtibor','iʼtibor','saʼy','maʼnaviyat','taʼsir']},
+{k:'ÖĞŞÇ.,',w:['Ğalaba!','Özbekiston.','Şahar, bağ.','Çoy içdi.','Qani?','Köl - çiroyli.','Ötkir fikr.','Şoşilma!']}
 ];
-// Matnlar: {a: muallif, t: sarlavha, text: yangi alifboda}. Haqiqiy asarlar konvertor bilan tayyorlanadi.
+// Bölimlar va darslar. g - yangi harflar darsi, r - takrorlaş, p - şaxsiy maşq (2:00), a - baholaş (1:00)
+const UN=[
+{t:'Boşlaniş',ls:[{t:'A, S, D, F',g:0},{t:'J, K, L, Ş',g:1},{t:'G va H',g:2},{t:'Takrorlaş 1',r:2},{t:'Şaxsiy maşq',p:1}]},
+{t:'Yuqori qator',ls:[{t:'E, I, O, U',g:3},{t:'R va T',g:4},{t:'Q, Y, P',g:5},{t:'Ö va Ğ',g:6},{t:'Takrorlaş 2',r:6},{t:'Şaxsiy maşq',p:1}]},
+{t:'Pastki qator',ls:[{t:'N, M, B',g:7},{t:'Z, X, V',g:8},{t:'Ç',g:9},{t:'Tutuq belgisi ʼ',g:10},{t:'Takrorlaş 3',r:10}]},
+{t:'Yakunlaş',ls:[{t:'Bosh harflar va belgilar',g:11},{t:'Yakuniy takrorlaş',r:11},{t:'Şaxsiy maşq',p:1},{t:'Baholaş',a:1}]}
+];
+// Matnlar: haqiqiy asarlar konvertor bilan tayyorlanib shu yerga qöşiladi
 const TEXTS=[
 {a:'Namuna',t:'Bahor',text:'Bahor keldi. Daraxtlarda çeçak oçildi, bağda quşlar sayradi.'},
 {a:'Namuna',t:'Bilim',text:'Ilm - çiroq, bilim - kuç. Töğri yöl topgan heç qaçon adaşmaydi.'}
 ];
-const cnt=l=>LV[l].tx?TEXTS.length:3;
+const ALL=[];let up=0;
+UN.forEach(u=>u.ls.forEach(l=>{if(l.g!=null)up=Math.max(up,l.g);if(l.r!=null)up=Math.max(up,l.r);
+ l.up=up;l.id='k'+ALL.length;l.ex=l.p?['p']:l.a?['a']:l.g!=null?['d','d','w','w','m','m']:['m','m','m','m','m'];ALL.push(l)}));
+const TL=TEXTS.map((t,i)=>({id:'t'+i,t:t.a+': '+t.t,ti:i,up:11,ex:['t']}));
 
-// Progress: oxirgi daraja va maşq saqlanadi
+// Progress (bu qurilmada saqlanadi)
 let P;try{P=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-P=Object.assign({lv:0,ex:0,max:0,pts:0,best:{}},P||{});
-if(P.lv>=LV.length||P.lv<0)P.lv=0;if(P.ex>=cnt(P.lv))P.ex=0;
+P=Object.assign({done:{},pts:0,n:0,sw:0,sa:0,sec:0,day:{},keys:{}},P||{});
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(P))}catch(e){}};
+const dn=l=>P.done[l.id]||0,full=l=>dn(l)>=l.ex.length;
+const today=()=>new Date().toISOString().slice(0,10);
+const fmt=s=>String(s/60|0).padStart(2,'0')+':'+String(Math.floor(s%60)).padStart(2,'0');
+let course=0;
+const list=()=>course?TL:ALL;
+const opened=(i)=>course?(i==0?full(ALL[ALL.length-1]):full(TL[i-1])):(i==0||full(ALL[i-1]));
+
+function head(){
+ const g=Math.min(1,P.pts/MAXP),h=10+g*70,top=95-h,w=2+g*6,cr=g*30;
+ let s=`<svg viewBox="0 0 120 110" width="110" role="img" aria-label="Nihol"><line x1="15" y1="100" x2="105" y2="100" stroke="#8a8a80"/>`;
+ if(g<0.03)s+=`<ellipse cx="60" cy="97" rx="5" ry="3" fill="#8b5a2b"/>`;
+ else{s+=`<path d="M60 100 Q${60+g*2} ${100-h/2} 60 ${top+5}" stroke="#8b5a2b" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
+  const n=Math.round(g*14)+2;
+  for(let i=0;i<n;i++){const a=i*2.4,r=cr*Math.sqrt((i+1)/n);s+=`<circle cx="${60+Math.cos(a)*r}" cy="${top+Math.sin(a)*r*.8}" r="${3+g*6}" fill="#3fa34d" fill-opacity=".85"/>`}}
+ const stg=TH.filter(t=>P.pts>=t).length,nx=TH[stg];
+ $('#tr').innerHTML=s+`</svg><div><b>Nihol (${stg}/5)</b><br>Ball: ${P.pts}<br>${nx!=null?'Keyingi bosqiçgaça: '+(nx-P.pts):'Eng yuqori bosqiç'}</div>`;
+ $('#st').innerHTML=`Örtaça tezlik: <b>${P.n?Math.round(P.sw/P.n):'--'}</b> söz/daq<br>Örtaça aniqlik: <b>${P.n?Math.round(P.sa/P.n)+'%':'--'}</b><br>Yozilgan vaqt: <b>${fmt(P.sec)}</b> · Kunlik maqsad: <b>${fmt(P.day[today()]||0)}</b> / ${fmt(GOAL)}`;
+}
+
+function home(){
+ head();
+ $('#side').innerHTML=['Harflarni örganiş','Adabiy matnlar'].map((t,i)=>`<button data-c="${i}" class="${i==course?'c':''}">${t}${i&&!full(ALL[ALL.length-1])?' 🔒':''}</button>`).join('');
+ const L=list(),cur=L.findIndex((l,i)=>opened(i)&&!full(l));
+ let n=0;
+ $('#units').innerHTML=(course?[{t:'Namuna matnlar',ls:TL}]:UN).map(u=>`<h2>${u.t}</h2>`+u.ls.map(l=>{
+  const i=n++,o=opened(i),d=dn(l);
+  return `<div class="ls ${i==cur?'cur':''}" id="L${i}"><div class="lt"><span class="no">${i+1}</span>${l.t}${l.p?' · 2:00':l.a?' · 1:00':''}<button data-i="${i}" ${o?'':'disabled'}>${!o?'🔒':d==0?'Boşlaş':d<l.ex.length?'Davom etiş':'Qayta'}</button></div><div class="sg">${l.ex.map((_,j)=>`<i class="${j<d?'f':''}"></i>`).join('')}</div></div>`}).join('')).join('');
+ const e=$('#L'+cur);if(e&&cur>0)e.scrollIntoView({block:'center'});
+}
 
 const R=a=>a[Math.random()*a.length|0];
 const sh=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
-function gen(lv,ex){
- const L=LV[lv];
- if(L.tx)return TEXTS[ex].text;
- if(ex==0){const pool=[...L.k];if(pool.length<3)pool.push('a','a');
+const weak=()=>Object.entries(P.keys).filter(([c,v])=>v.t>=5&&v.e/v.t>.05).sort((a,b)=>b[1].e/b[1].t-a[1].e/a[1].t).slice(0,3).map(x=>x[0]);
+let S={},CL,CI;
+function gen(){
+ const t=CL.ex[CI];
+ if(t=='t')return TEXTS[CL.ti].text;
+ if(t=='d'){const pool=[...GR[CL.g].k];if(pool.length<3)pool.push('a','a');
   return Array.from({length:8},()=>Array.from({length:2+Math.random()*3|0},()=>R(pool)).join('')).join(' ')}
- if(ex==1)return sh(L.w).slice(0,8).join(' ');
- return sh(LV.slice(0,lv+1).flatMap(x=>x.w)).slice(0,10).join(' ');
+ if(t=='w')return sh(GR[CL.g].w).slice(0,8).join(' ');
+ const pool=GR.slice(0,CL.up+1).flatMap(x=>x.w);
+ if(t=='m')return sh(pool).slice(0,10).join(' ');
+ let p=pool;
+ if(t=='p'){const wk=weak(),f=pool.filter(w=>[...w.toLowerCase()].some(c=>wk.includes(c)));if(f.length>=5)p=f}
+ return [0,1,2].map(()=>sh(p).join(' ')).join(' ');
 }
-
-// Nihol ballga qarab ösadi: 0 ball - urug', MAXP ball - katta daraxt
-function tree(){
- const g=Math.min(1,(P.pts||0)/MAXP),h=10+g*110,w=2+g*9,top=200-h,cr=g*55;
- let s=`<svg viewBox="0 0 200 210" width="200" role="img" aria-label="Nihol"><line x1="10" y1="200" x2="190" y2="200" stroke="#8a8a80"/>`;
- if(g<0.03)s+=`<ellipse cx="100" cy="196" rx="6" ry="4" fill="#8b5a2b"/>`;
- else{
-  s+=`<path d="M100 200 Q${100+g*3} ${200-h/2} 100 ${top}" stroke="#8b5a2b" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
-  const n=Math.round(g*14)+2;
-  for(let i=0;i<n;i++){const a=i*2.4,r=cr*Math.sqrt((i+1)/n);s+=`<circle cx="${100+Math.cos(a)*r}" cy="${top+Math.sin(a)*r*.8}" r="${4+g*9}" fill="#3fa34d" fill-opacity=".85"/>`}
- }
- $('#tr').innerHTML=s+`</svg><div>Ball: <b>${P.pts||0}</b> / ${MAXP}</div>`;
+function begin(i){CL=list()[i];const d=dn(CL);CI=d>=CL.ex.length?0:d;$('#home').hidden=true;$('#pr').hidden=false;start()}
+function exit(){clearInterval(S.iv);$('#pr').hidden=true;$('#home').hidden=false;home()}
+function start(){
+ clearInterval(S.iv);const t=CL.ex[CI];
+ S={text:gen(),i:0,err:0,tot:0,t0:0,done:false,bad:false,tm:t=='p'?120:t=='a'?60:0};
+ $('#pt').textContent=CL.t;
+ $('#sg').innerHTML=CL.ex.map((_,j)=>`<i class="${j<dn(CL)?'f':j==CI?'c':''}"></i>`).join('');
+ $('#res').hidden=true;paint();tick();
 }
-
-let S={};
-function start(){S={text:gen(P.lv,P.ex),i:0,err:0,tot:0,t0:0,done:false,bad:false};render()}
-
-function render(){
- const L=LV[P.lv],n=cnt(P.lv);
- const name=L.tx?TEXTS[P.ex].a+': '+TEXTS[P.ex].t:['Harf maşqi','Söz maşqi','Takrorlaş'][P.ex];
- $('#info').innerHTML=`<b>Dars ${P.lv+1}/${LV.length}</b> · ${L.tx?'Adabiy matnlar':'yangi tugmalar: <b>'+[...L.k].join(' ')+'</b>'}<br>Maşq ${P.ex+1}/${n} - ${name}`;
- $('#map').innerHTML=LV.map((l,i)=>`<button data-i="${i}" class="${i==P.lv?'c':i<P.lv?'d':''}" ${i>P.max?'disabled':''}>${i+1}</button>`).join('');
- $('#res').hidden=true;paint();tree();
-}
+function tick(){$('#tm').textContent=S.tm?fmt(Math.max(0,S.tm-(S.t0?(Date.now()-S.t0)/1000:0))):''}
 
 function paint(){
- $('#txt').innerHTML=[...S.text].map((ch,j)=>`<span class="${j<S.i?'ok':j==S.i?(S.bad?'cur bad':'cur'):''}">${ch}</span>`).join('');
- const nxt=S.text[S.i];
- const L=LV[P.lv],newSet=new Set(L.tx?[]:[...L.k].map(c=>c.toLowerCase()));
- const lo=nxt?nxt.toLowerCase():'';
- $('#kb').innerHTML=ROWS.map((r,ri)=>`<div class="r" style="margin-left:${ri*14}px">`+r.map(c=>`<i class="k ${newSet.has(lab(c))?'n':''} ${lo&&codeOf[lo]==c?'x':''}">${lab(c)}</i>`).join('')+'</div>').join('')+`<div class="r"><i class="k sp ${nxt==' '?'x':''}">probel</i></div>`;
+ const a=Math.max(0,S.i-25),seg=S.text.slice(a,a+160);
+ $('#txt').innerHTML=[...seg].map((ch,j)=>{const x=a+j;return `<span class="${x<S.i?'ok':x==S.i?(S.bad?'cur bad':'cur'):''}">${ch}</span>`}).join('');
+ const nxt=S.text[S.i],lo=nxt?nxt.toLowerCase():'';
+ const ns=new Set(CL.g!=null?[...GR[CL.g].k].map(c=>c.toLowerCase()):[]);
+ $('#kb').innerHTML=ROWS.map((r,ri)=>`<div class="r" style="margin-left:${ri*14}px">`+r.map(c=>`<i class="k ${ns.has(lab(c))?'n':''} ${lo&&codeOf[lo]==c?'x':''}">${lab(c)}</i>`).join('')+'</div>').join('')+`<div class="r"><i class="k sp ${nxt==' '?'x':''}">probel</i></div>`;
  let h='';
- if(nxt){
-  if(nxt==' ')h='Probel';
-  else{const c=codeOf[lo];h=`<b>${nxt}</b> - `+(c?`<b>${cap(c)}</b> tugmasi`:EXTRA[nxt]||'belgi')+(c&&nxt!==lo?' + Shift':'');}
- }
+ if(nxt){if(nxt==' ')h='Probel';else{const c=codeOf[lo];h=`<b>${nxt}</b> - `+(c?`<b>${cap(c)}</b> tugmasi`:EXTRA[nxt]||'belgi')+(c&&nxt!==lo?' + Shift':'')}}
  $('#hint').innerHTML=h;
 }
 
@@ -152,44 +193,42 @@ function charOf(e){
  const k=e.key;if(k.length!==1)return null;
  return "'’ʻ".includes(k)?'ʼ':k;
 }
-
 addEventListener('keydown',e=>{
- if(e.target.tagName=='TEXTAREA')return;
+ if(e.target.tagName=='TEXTAREA'||$('#pr').hidden)return;
+ if(e.key=='Escape'){exit();return}
  if(S.done){if(e.key=='Enter'){e.preventDefault();$('#go')&&$('#go').click()}return}
  const c=charOf(e);if(c===null)return;
  e.preventDefault();
- if(!S.t0)S.t0=Date.now();
+ if(!S.t0){S.t0=Date.now();if(S.tm)S.iv=setInterval(()=>{tick();if(Date.now()-S.t0>=S.tm*1000)finish()},250)}
+ const tg=S.text[S.i],okk=c===tg;
  S.tot++;
- if(c===S.text[S.i]){S.bad=false;S.i++;if(S.i>=S.text.length){finish();return}}
- else{S.err++;S.bad=true}
+ if(tg!==' '){const k=tg.toLowerCase(),v=P.keys[k]=P.keys[k]||{t:0,e:0};v.t++;if(!okk)v.e++}
+ if(okk){S.bad=false;S.i++;if(S.i>=S.text.length){finish();return}}else{S.err++;S.bad=true}
  paint();
 });
 
 function finish(){
- S.done=true;
- const min=Math.max((Date.now()-S.t0)/60000,1/600);
- const wpm=Math.round(S.text.length/5/min),acc=Math.round(100*(S.tot-S.err)/S.tot),ok=acc>=PASS;
- const k=P.lv+'.'+P.ex,b=P.best[k]||{};
- let gain=0;
- if(ok){gain=b.pass?5:20+(acc>=98?10:0);P.pts=Math.min(MAXP,(P.pts||0)+gain)}
- P.best[k]={wpm:Math.max(b.wpm||0,wpm),acc:Math.max(b.acc||0,acc),pass:b.pass||ok};
- let msg='';
- if(ok){
-  if(P.ex+1<cnt(P.lv))P.ex++;
-  else if(P.lv+1<LV.length){P.lv++;P.ex=0;P.max=Math.max(P.max,P.lv);msg=`Yangi dars: <b>${P.lv+1}</b>`}
-  else P.ex=0;
- }
- save();paint();tree();
- const r=$('#res');r.hidden=false;
- r.innerHTML=`<b>${ok?'Ötdingiz':'Qayta urinib köring'}</b> - tezlik: ${wpm} söz/daq, aniqlik: ${acc}% (kerak: ${PASS}%)${ok?` · <b>+${gain} ball</b>`:''}<br>${msg}<br><button id="go" style="margin-top:8px">${ok?'Davom etiş':'Qayta urinib köriş'}</button>`;
- $('#go').onclick=start;
+ if(S.done)return;S.done=true;clearInterval(S.iv);
+ const sec=Math.min(S.tm||1e9,(Date.now()-S.t0)/1000)||1;
+ const wpm=Math.round(S.i/5/(sec/60)),acc=S.tot?Math.round(100*(S.tot-S.err)/S.tot):0,ok=acc>=PASS&&S.i>0;
+ P.n++;P.sw+=wpm;P.sa+=acc;P.sec+=sec;P.day[today()]=(P.day[today()]||0)+sec;
+ let gain=0,msg='';const t=CL.ex[CI];
+ if(ok){const first=CI==dn(CL);
+  gain=first?(t=='p'?30:t=='a'?50:20+(acc>=98?10:0)):5;
+  if(first){P.done[CL.id]=CI+1;if(full(CL))msg='Dars tugadi!'}
+  P.pts=Math.min(MAXP,P.pts+gain)}
+ save();head();paint();tick();
+ const more=ok&&CI+1<CL.ex.length,r=$('#res');r.hidden=false;
+ r.innerHTML=`<b>${ok?'Ötdingiz':'Qayta urinib köring'}</b> - tezlik: ${wpm} söz/daq, aniqlik: ${acc}% (kerak: ${PASS}%)${ok?` · <b>+${gain} ball</b>`:''}<br>${msg}<br><button id="go" style="margin-top:8px">${more?'Keyingi maşq':ok?'Darslarga qaytiş':'Qayta urinib köriş'}</button>`;
+ $('#go').onclick=()=>{if(more){CI++;start()}else if(ok)exit();else start()};
 }
 
-$('#map').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;P.lv=+b.dataset.i;P.ex=0;save();start()};
-$('#rs').onclick=e=>{
- const b=e.target;
+$('#units').onclick=e=>{const b=e.target.closest('button');if(b&&!b.disabled)begin(+b.dataset.i)};
+$('#side').onclick=e=>{const b=e.target.closest('button');if(b){course=+b.dataset.c;home()}};
+$('#ex').onclick=exit;
+$('#rs').onclick=e=>{const b=e.target;
  if(!b.dataset.s){b.dataset.s=1;b.textContent='Aniqmi? Yana bosing';setTimeout(()=>{delete b.dataset.s;b.textContent='Boşidan'},3000);return}
- P={lv:0,ex:0,max:0,pts:0,best:{}};save();delete b.dataset.s;b.textContent='Boşidan';start();
+ P={done:{},pts:0,n:0,sw:0,sa:0,sec:0,day:{},keys:{}};save();delete b.dataset.s;b.textContent='Boşidan';exit();
 };
 
 // Eski lotin -> yangi alifbo (matnlarni tayyorlaş uçun)
@@ -200,8 +239,7 @@ function conv(s){
   .replace(/'/g,'ʼ');
 }
 $('#cb').onclick=()=>{$('#co').value=conv($('#ci').value)};
-
-start();
+home();
 </script>
 </body>
 </html>
