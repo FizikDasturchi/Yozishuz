@@ -60,21 +60,28 @@ function openPr(){ac();if(document.activeElement)document.activeElement.blur();s
 function begin(i){CL=ALL[i];const d=dn(CL);CI=d>=CL.sc.length?0:d;openPr()}
 function problem(){const l=[...ALL].reverse().find(x=>dn(x)>0)||ALL[0];
  CL={id:'pk',pk:1,t:'Problem harflar',lk:l.lk,cw:l.cw,sc:[{t:'p'}]};CI=0;openPr()}
-function exit(){clearInterval(S.iv);home()}
+function gStop(){if(S.game&&S.game.stop)S.game.stop()}
+function exit(){clearInterval(S.iv);gStop();home()}
 function start(){
- clearInterval(S.iv);const s=CL.sc[CI];
+ clearInterval(S.iv);gStop();const s=CL.sc[CI];
  // t0 - birinçi bosiş vaqti, tl - öxirgi töğri bosiş vaqti (tezlik hisobi uçun)
- S={text:'',i:0,err:0,tot:0,t0:0,tl:0,done:false,bad:false,tm:s.t=='p'?120:s.t=='a'?60:0,find:s.t=='f',fc:s.c,found:false};
- if(!S.find)S.text=gen();
+ S={text:'',i:0,err:0,tot:0,t0:0,tl:0,done:false,bad:false,tm:s.t=='p'?120:s.t=='a'?60:0,find:s.t=='f',fc:s.c,found:false,gm:s.t=='G',game:null,lost:false};
+ if(!S.find&&!S.gm)S.text=gen();
  $('#res').hidden=true;$('#res').innerHTML='';$('#play').hidden=false;
+ $('#gm').hidden=!S.gm;$('#gm').innerHTML='';
  $('#pt').textContent=CL.t;
+ if(S.gm){S.game=GAMES[s.g]();$('#pt').textContent=CL.t+' · '+S.game.title}
  $('#sg').innerHTML=CL.sc.map((_,j)=>`<i class="${j<dn(CL)?'f':j==CI?'c':''}"></i>`).join('');
  paint();
 }
 function paint(){
  const s=CL.sc[CI];
- $('#fc').hidden=!S.find;$('#txt').hidden=S.find;$('#lv').hidden=S.find;
- if(S.find){
+ $('#gm').hidden=!S.gm;
+ $('#fc').hidden=!S.find;$('#txt').hidden=S.find||S.gm;$('#lv').hidden=S.find;
+ if(S.gm){
+  $('#fc').innerHTML='';
+  $('#lv').innerHTML=`<span>Aniqlik: ${S.tot?accOf(S):100}%</span>`+(S.game?`<span>${S.game.status()}</span>`:'');
+ }else if(S.find){
   const c=S.fc,fg=fing(codeOf[c.toLowerCase()]),up=c!==c.toLowerCase();
   $('#fc').innerHTML=S.found
    ?`<h2>Topdingiz! 🎉</h2><p>Bu <span class="kbx sm">${c}</span> tugmasi qayerdaligini eslab qoling, endi uni maşq qilamiz!</p><p class="mut">Davom etiş uçun <b>ENTER</b> bosing</p><button class="pri" id="fgo">Davom etiş</button>`
@@ -88,7 +95,7 @@ function paint(){
   const left=S.t0?Math.max(0,S.tm-(Date.now()-S.t0)/1000):S.tm;
   $('#lv').innerHTML=`<span>Tezlik: ${liveWpm(S)}</span><span>Aniqlik: ${S.tot?accOf(S):100}%</span>`+(S.tm?`<span>⏱ ${fmt(left)}</span>`:'');
  }
- const tg=S.find?(S.found?'':S.fc):S.text[S.i];
+ const tg=S.gm?(S.game?S.game.target():''):S.find?(S.found?'':S.fc):S.text[S.i];
  $('#kb').innerHTML=kbHTML(tg);
  handsSet(tg);
  let h='';
@@ -106,7 +113,8 @@ function adv(){
 function finish(timeUp){
  if(S.done)return;S.done=true;clearInterval(S.iv);
  const s=CL.sc[CI],wpm=wpmOf(S,timeUp),acc=accOf(S);
- const okAcc=acc>=PASS,okWpm=wpm>=MIN_WPM,ok=okAcc&&okWpm&&S.i>0;
+ const isG=s.t=='G',okAcc=acc>=PASS,okWpm=isG||wpm>=MIN_WPM,ok=okAcc&&okWpm&&S.i>0&&!S.lost;
+ gStop();
  const stars=!ok?0:acc>=96?3:acc>=90?2:1;
  addStats(S,timeUp);
  let gain=0,msg='';
@@ -122,8 +130,8 @@ function finish(timeUp){
  $('#play').hidden=true;
  const r=$('#res');r.hidden=false;
  const title=!ok?'Qayta urinib köring 💪':stars==3?R(['Ajoyib! 🌟','Zör! 🌟','Barakalla! 🌟']):stars==2?'Yaxşi! 👏':'Ötdingiz! 👍';
- const need=[];if(!okAcc)need.push(`aniqlik kamida ${PASS}% bölişi kerak`);if(!okWpm)need.push(`tezlik kamida ${MIN_WPM} söz/daq bölişi kerak`);
- r.innerHTML=`<div class="stars">${[0,1,2].map(i=>`<span class="${i<stars?'on':''}" style="animation-delay:${i*.2}s">${i<stars?'★':'☆'}</span>`).join('')}</div>
+ const need=[];if(!okAcc)need.push(`aniqlik kamida ${PASS}% bölişi kerak`);if(!okWpm)need.push(`tezlik kamida ${MIN_WPM} söz/daq bölişi kerak`);if(S.lost)need.push('öyinni yutiş kerak');
+ r.innerHTML=`<div class="stars">${[0,1,2].map(i=>`<span class="${i<stars?'on':''}" style="animation-delay:${.15+i*.85}s">${i<stars?'★':'☆'}</span>`).join('')}</div>
  <h2>${title}</h2>
  <p class="rs">Tezligingiz <b>${wpm}</b> söz/daq, aniqligi <b>${acc}%</b>${ok?` · <b>+${gain} ball</b>`:`<br><span class="mut">Davom etiş uçun ${need.join(', ')}</span>`}</p>${msg}
  <div class="pg"><b>Nihol (${stg}/5)</b> · ${P.pts} ball<div class="pb"><i style="width:${pct}%"></i></div>
@@ -135,3 +143,10 @@ function finish(timeUp){
 }
 function confetti(){const e=['⭐','🎉','✨','🌟','🎈'];for(let i=0;i<28;i++){const d=document.createElement('div');d.className='cf';d.textContent=R(e);d.style.left=Math.random()*100+'vw';d.style.animationDelay=Math.random()*.9+'s';d.style.animationDuration=2+Math.random()*1.6+'s';document.body.appendChild(d);setTimeout(()=>d.remove(),4800)}}
 function shake(el){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake')}
+
+// Öyin tugadi (yutdi/yutqazdi): "AMAZING" körsatilgandan keyin natija oynasi
+function gameEnd(win){
+ if(S.done)return;
+ S.lost=!win;
+ setTimeout(()=>{if(!S.done)finish()},win?2000:900);
+}

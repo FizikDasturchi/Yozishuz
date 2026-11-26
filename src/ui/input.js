@@ -23,6 +23,7 @@ addEventListener('keydown',e=>{
  if(e.repeat)return;
  const now=Date.now();
  click(c===' ');
+ if(S.gm){gameKey(c,now);return}
  if(S.find){
   if(c===S.fc){S.found=true;S.bad=false;handsPress();snd.ding()}else{S.bad=true;snd.bad();shake($('#fc'))}
   paint();return}
@@ -33,4 +34,22 @@ addEventListener('keydown',e=>{
  if(okk){S.bad=false;S.i++;S.tl=now;handsPress();if(S.i>=S.text.length){finish();return}}
  else{S.err++;S.bad=true;snd.bad();shake($('#txt'))}
  paint();
+});
+
+// Öyin paytida tugma: öyin özi töğri/xatoni hal qiladi, bu yerda statistika yuritiladi
+function gameKey(c,now){
+ const g=S.game;if(!g||g.over)return;
+ const tg=g.target(),r=g.key(c);
+ if(r===-1)return;
+ if(!S.t0){S.t0=now;S.tl=now}
+ S.tot++;
+ if(tg&&tg!==' '){const k=tg.toLowerCase(),v=P.keys[k]=P.keys[k]||{t:0,e:0};v.t++;if(r===0)v.e++}
+ if(r===1){S.i++;S.tl=now;handsPress()}else{S.err++;snd.bad();shake($('#gm'))}
+ paint();
+}
+// Tugma qöyvorilganda yengil tovuş
+addEventListener('keyup',e=>{
+ if(e.target.tagName=='TEXTAREA'||$('#pr').hidden||$('#res').hidden===false)return;
+ if(charOf(e)===null)return;
+ clickUp();
 });

@@ -37,14 +37,16 @@ const UN=[
 ];
 
 // Dars ekranlari: har harf avval alohida (topiş + mashq), keyin qöşib, keyin sözlar
+let GI=0; // öyinlar navbat bilan almaşadi (robot, yağin, poyga)
 function mk(l){
  if(l.k){const s=[];
   l.k.forEach((c,i)=>s.push({t:'f',c},{t:'d',c,pv:l.k.slice(0,i)}));
   if(l.k.length>1)s.push({t:'g'},{t:'g'});
   if(l.w&&l.w.length)s.push({t:'w'},{t:'w'},{t:'m'});else s.push({t:'g'},{t:'g'});
+  s.push({t:'G',g:GI++%3});
   return s}
  if(l.p)return[{t:'p'}];if(l.a)return[{t:'a'}];
- return[0,1,2,3,4].map(()=>({t:'m'}));
+ return[{t:'m'},{t:'m'},{t:'G',g:GI++%3},{t:'m'},{t:'m'}];
 }
 
 // Söz banki: sözlar harf bo'yiça avtomatik tanlanadi (faqat örganilgan harflardan tuzilgan sözlar)
