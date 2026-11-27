@@ -33,7 +33,7 @@ function auth(t){
 const isAdm=u=>u&&(u.role=='admin'||u.role=='main');
 const pub=u=>({id:u.id,name:u.fam+' '+u.ism,role:u.role});
 function st(c,now){
-  if(c.status=='running'&&now>=+c.endAt){setCell('Contests',c._r,'status','ended');c.status='ended';}
+  if(c.status=='running'&&c.endAt&&now>=+c.endAt){setCell('Contests',c._r,'status','ended');c.status='ended';}
   return c.status;
 }
 function doPost(e){
@@ -89,6 +89,12 @@ function route(b){
     const x=all('Users').find(r=>r.id==b.id); need(x&&x.role!='main','Asosiy adminning rolini özgartirib bölmaydi');
     setCell('Users',x._r,'role',b.role); return {ok:true};
   }
+  if(A=='deleteUser'){
+    need(u&&u.role=='main','Faqat asosiy adminlar');
+    const x=all('Users').find(r=>r.id==b.id); need(x&&x.role!='main','Asosiy adminni öçirib bölmaydi');
+    const rs=all('Results').filter(r=>r.uid==x.id).map(r=>r._r).reverse(); rs.forEach(r=>sheet('Results').deleteRow(r));
+    sheet('Users').deleteRow(x._r); return {ok:true};
+  }
   if(A=='create'){
     need(isAdm(u)); const title=String(b.title||'').trim(),text=String(b.text||'').trim();
     need(title&&text.length>=20,'Nom va matn (kamida 20 belgi) kerak'); need(text.length<=10000,'Matn 10 000 belgidan oşmasin');
@@ -102,7 +108,7 @@ function route(b){
   if(A=='approve'||A=='endNow'||A=='del'){
     need(isAdm(u)); const c=all('Contests').find(x=>x.id==b.id); need(c,'Topilmadi'); const s=st(c,now);
     if(A=='approve'){need(s=='waiting','Allaqaçon boşlangan');
-      setCell('Contests',c._r,'status','running');setCell('Contests',c._r,'startAt',now+CD);setCell('Contests',c._r,'endAt',now+CD+c.dur*1000);}
+      setCell('Contests',c._r,'status','running');setCell('Contests',c._r,'startAt',now+CD);setCell('Contests',c._r,'endAt',0);}
     if(A=='endNow'){need(s=='running');setCell('Contests',c._r,'status','ended');setCell('Contests',c._r,'endAt',now);}
     if(A=='del'){
       if(c.fileId){try{DriveApp.getFileById(c.fileId).setTrashed(true);}catch(e){}}
@@ -113,10 +119,10 @@ function route(b){
   }
   if(A=='submit'){
     need(u,'Avval röyhatdan öting'); const c=all('Contests').find(x=>x.id==b.id); need(c,'Topilmadi'); st(c,now);
-    need(c.status!='waiting'&&now<=+c.endAt+6000&&now>=+c.startAt,'Musobaqa vaqti öçgan');
+    need(c.status=='running'&&now>=+c.startAt,'Musobaqa vaqti öçgan');
     need(!all('Results').some(r=>r.cid==c.id&&r.uid==u.id),'Natija allaqaçon saqlangan');
     const n=Math.max(0,Math.min(+b.n||0,c.text.length)),acc=Math.max(0,Math.min(100,+b.acc||0));
-    const sec=Math.min(+b.sec||0,(now-+c.startAt)/1000+2,+c.dur);
+    const sec=Math.min(+b.sec||0,(now-+c.startAt)/1000+2);
     const wpm=b.tu?Math.round(n/5/(Math.max(1,sec)/60)):(sec>=1?Math.round(Math.max(0,n-1)/5/(sec/60)):0);
     need(wpm<=250,'Natija shubhali');
     const score=Math.round(wpm*acc);

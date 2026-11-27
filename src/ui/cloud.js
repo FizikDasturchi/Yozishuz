@@ -16,18 +16,30 @@ async function api(a,o){
 const isAdm=()=>U&&(U.role=='admin'||U.role=='main');
 function setU(j){U=j?j.u:null;if(j&&j.t){TOK=j.t;try{localStorage.setItem('yozish.tok',TOK)}catch(e){}}if(!U){TOK='';try{localStorage.removeItem('yozish.tok')}catch(e){}}authUI()}
 function authUI(){
- $('#au').innerHTML=U?`<button class="sm" id="pw">🔑 Parol</button> <b>${esc(U.name)}</b>${U.role=='main'?' ★':U.role=='admin'?' ✔':''} <button class="sm" id="lo">Çiqiş</button>`:`<button class="sm pri" id="li" title="Kirish / Röyhatdan ötiş">👤 Kirish</button>`;
- if(U){$('#lo').onclick=()=>{setU(null);navTo('home')};$('#pw').onclick=changePass;}else $('#li').onclick=()=>login();
- $('#nu').hidden=!isAdm();
+ const nav=$('#au');
+ nav.innerHTML=U?`<button class="sm profile-trigger" id="profile" title="Hisob sozlamalari">👤 <span>${esc(U.name)}</span>${U.role=='main'?' ★':U.role=='admin'?' ✔':''}</button>`:`<button class="sm pri profile-trigger" id="li" title="Kirish / Röyhatdan ötiş">👤 Kirish</button>`;
+ if(U)$('#profile').onclick=profilePanel;else $('#li').onclick=()=>login();
+ $('#nu').hidden=true;
 }
-function changePass(){
- const d=$('#dg'); d.innerHTML=`<h3>Parolni almaştirish</h3><input id="po" type="password" placeholder="Eski parol"><input id="pn" type="password" placeholder="Yangi parol (kamida 6 belgi)"><input id="pc" type="password" placeholder="Yangi parolni qayta kiriting"><p class="mut" id="pe"></p><p><button class="pri" id="ps">Saqlash</button> <button id="px">Yopiş</button></p>`;
- $('#px').onclick=()=>d.close(); $('#ps').onclick=async()=>{const b=$('#ps');b.disabled=true;$('#pe').textContent='Kuting…';try{if($('#pn').value!==$('#pc').value)throw new Error('Yangi parollar bir xil emas');await api('changePass',{old:$('#po').value,p:$('#pn').value});$('#pe').textContent='Parol almaştirildi';setTimeout(()=>d.close(),700)}catch(e){$('#pe').textContent=e.message;b.disabled=false}};d.showModal();
+function profilePanel(){
+ const d=$('#dg');
+ d.innerHTML=`<h3>👤 ${esc(U.name)}</h3><p class="mut">${U.role=='main'?'Asosiy admin':U.role=='admin'?'Admin':'Foydalanuvçi'}</p><section class="card" style="padding:12px"><h3>🔑 Parolni almaştirish</h3><input id="po" type="password" placeholder="Eski parol"><input id="pn" type="password" placeholder="Yangi parol (kamida 6 belgi)"><input id="pc" type="password" placeholder="Yangi parolni qayta kiriting"><p class="mut" id="pe"></p><button class="pri" id="ps">Saqlash</button></section>${isAdm()?'<section id="profileUsers" style="margin-top:14px"><h3>Foydalanuvçilar</h3><p class="mut">Roʻyxat yuklanmoqda…</p></section>':''}<p><button id="px">Yopiş</button></p>`;
+ $('#px').onclick=()=>d.close();
+ $('#ps').onclick=async()=>{const b=$('#ps');b.disabled=true;$('#pe').textContent='Kuting…';try{if($('#pn').value!==$('#pc').value)throw new Error('Yangi parollar bir xil emas');await api('changePass',{old:$('#po').value,p:$('#pn').value});$('#pe').textContent='Parol almaştirildi';}catch(e){$('#pe').textContent=e.message;b.disabled=false}};
+ d.showModal(); if(isAdm())loadProfileUsers();
 }
+async function loadProfileUsers(){
+ const box=$('#profileUsers');if(!box)return;let j;try{j=await api('users')}catch(e){box.innerHTML=`<p class="mut">${esc(e.message)}</p>`;return}
+ const main=U.role=='main',rl={main:'Asosiy admin',admin:'Admin',user:'Foydalanuvçi'};
+ box.innerHTML=`<h3>Foydalanuvçilar (${j.list.length})</h3><input id="profileSearch" placeholder="Foydalanuvchini qidiriş…"><div id="profileList" style="max-height:280px;overflow:auto"></div>`;
+ const draw=()=>{$('#profileList').innerHTML=j.list.filter(x=>x.name.toLowerCase().includes($('#profileSearch').value.toLowerCase())).map(x=>`<div class="tc" style="display:flex;flex-direction:row;justify-content:space-between;text-align:left;margin:6px 0"><span><b>${esc(x.name)}</b><br><small>${rl[x.role]}</small></span><span>${main&&x.role!='main'?`${x.role=='user'?`<button class="sm" data-r="admin" data-i="${x.id}">Admin qiliş</button>`:`<button class="sm" data-r="user" data-i="${x.id}">Adminlikdan çetlatiş</button>`} <button class="sm" data-x="${x.id}">🗑 Öçiriş</button>`:''}</span></div>`).join('')||'<p>Topilmadi.</p>'};draw();$('#profileSearch').oninput=draw;
+ $('#profileList').onclick=async e=>{const b=e.target.closest('[data-r],[data-x]');if(!b)return;b.disabled=true;try{if(b.dataset.r)await api('setRole',{id:b.dataset.i,role:b.dataset.r});else if(confirm('Bu foydalanuvchi va uning natijalarini öçirish?'))await api('deleteUser',{id:b.dataset.x});else b.disabled=false;loadProfileUsers()}catch(x){alert(x.message);b.disabled=false}};
+}
+function changePass(){profilePanel();}
 function login(cb){
  const d=$('#dg');let reg=false;
- const draw=()=>{d.innerHTML=`<h3>${reg?'Röyhatdan ötiş':'Kirish'}</h3><input id="gf" placeholder="Familiya"><input id="gi" placeholder="Ism"><input id="gp" type="password" placeholder="Parol (kamida 6 belgi)"><p class="mut" id="ge"></p><p><button class="pri" id="gok">${reg?'Röyhatdan ötiş':'Kirish'}</button> <button id="gx">Yopiş</button></p><p><a href="#" id="gs">${reg?'Hisobim bor — kirish':'Hisobim yöq — röyhatdan ötiş'}</a></p>`;
-  $('#gs').onclick=e=>{e.preventDefault();reg=!reg;draw()};$('#gx').onclick=()=>d.close();
+ const draw=()=>{d.innerHTML=`<h3>${reg?'Röyhatdan ötiş':'Kirish'}</h3><input id="gf" placeholder="Familiya"><input id="gi" placeholder="Ism"><div style="display:flex;gap:6px;align-items:center"><input id="gp" type="password" placeholder="Parol (kamida 6 belgi)" style="flex:1"><button type="button" id="eye" class="sm">👁</button></div><p class="mut" id="ge"></p><p><button class="pri" id="gok">${reg?'Röyhatdan ötiş':'Kirish'}</button> <button id="gx">Yopiş</button></p><p><a href="#" id="gs">${reg?'Hisobim bor — kirish':'Hisobim yöq — röyhatdan ötiş'}</a></p>`;
+  $('#gs').onclick=e=>{e.preventDefault();reg=!reg;draw()};$('#gx').onclick=()=>d.close();$('#eye').onclick=()=>{const p=$('#gp');p.type=p.type=='password'?'text':'password';$('#eye').textContent=p.type=='password'?'👁':'🙈'};
   $('#gok').onclick=async()=>{const b=$('#gok');b.disabled=true;$('#ge').textContent='Kuting…';
    try{const j=await api(reg?'register':'login',{fam:$('#gf').value,ism:$('#gi').value,p:$('#gp').value});setU(j);d.close();if(cb)cb();else navTo(curV)}
    catch(e){$('#ge').textContent=e.message;b.disabled=false}};
@@ -82,7 +94,7 @@ async function contView(){
  const up=j.list.filter(c=>c.state!='ended'),past=j.list.filter(c=>c.state=='ended').reverse(),L=CT=='up'?up:past;
  const lab={waiting:'Admin tasdiqlaşini kutmoqda',running:'🔴 Boşlandi',ended:'Tugagan'};
  el.innerHTML=`<section class="card"><h2>Musobaqa</h2><p><button class="${CT=='up'?'pri':''}" id="c1">Kelgusi (${up.length})</button> <button class="${CT=='past'?'pri':''}" id="c2">Ötgan (${past.length})</button> ${isAdm()?'<button id="cn">＋ Yangi musobaqa</button>':''}</p><div id="cf"></div>
- ${L.map(c=>`<div class="tc" style="flex-direction:row;justify-content:space-between;margin:8px 0"><span><b>${esc(c.title)}</b><br><span class="mut">${dt(c.plan)} · ${c.dur/60} daq · ${lab[c.state]} · ${c.n} natija</span></span><span><button class="pri" data-o="${c.id}">Ochiş</button>${isAdm()?` <button data-d="${c.id}" title="Öçiriş">🗑</button>`:''}</span></div>`).join('')||'<p class="mut">Hozircha yöq</p>'}</section>`;
+ ${L.map(c=>`<div class="tc" style="flex-direction:row;justify-content:space-between;margin:8px 0"><span><b>${esc(c.title)}</b><br><span class="mut">${dt(c.plan)} · ${lab[c.state]} · ${c.n} natija</span></span><span><button class="pri" data-o="${c.id}">Ochiş</button>${isAdm()?` <button data-d="${c.id}" title="Öçiriş">🗑</button>`:''}</span></div>`).join('')||'<p class="mut">Hozircha yöq</p>'}</section>`;
  $('#c1').onclick=()=>{CT='up';contView()};$('#c2').onclick=()=>{CT='past';contView()};
  if(isAdm())$('#cn').onclick=newContest;
  el.onclick=async e=>{const o=e.target.closest('[data-o]'),d=e.target.closest('[data-d]');
@@ -91,12 +103,12 @@ async function contView(){
 }
 function newContest(){
  const f=$('#cf'),d=new Date(Date.now()+36e5);d.setMinutes(0);
- f.innerHTML=`<div class="card" style="background:#f1faff;margin:10px 0"><input id="nt" placeholder="Musobaqa nomi" style="width:100%"><p>Boşlanişi: <input type="datetime-local" id="np" value="${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}T${p2(d.getHours())}:00"> Davomiyligi: <select id="nd"><option value="60">1 daq</option><option value="120" selected>2 daq</option><option value="180">3 daq</option><option value="300">5 daq</option><option value="600">10 daq</option></select></p>${picker('n')}<button class="pri" id="ns">Saqlaş</button> <span class="mut" id="ne"></span></div>`;
+ f.innerHTML=`<div class="card" style="background:#f1faff;margin:10px 0"><input id="nt" placeholder="Musobaqa nomi" style="width:100%"><p>Boşlanişi: <input type="datetime-local" id="np" value="${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}T${p2(d.getHours())}:00"></p>${picker('n')}<button class="pri" id="ns">Saqlaş</button> <span class="mut" id="ne"></span></div>`;
  bindPicker('n');
  $('#ns').onclick=async()=>{const fl=$('#nnf').files[0],b=$('#ns');let file;
   try{if(fl&&/\.(pdf|docx)$/i.test(fl.name)){if(fl.size>4e6)throw new Error('Fayl 4 MB dan oşmasin');
     file={name:fl.name,mime:fl.type||'application/octet-stream',b64:await new Promise(ok=>{const r=new FileReader();r.onload=()=>ok(r.result.split(',')[1]);r.readAsDataURL(fl)})}}
-   b.disabled=true;await api('create',{title:$('#nt').value,text:pickText('n'),plan:new Date($('#np').value).getTime(),dur:+$('#nd').value,file});contView()}
+   b.disabled=true;await api('create',{title:$('#nt').value,text:pickText('n'),plan:new Date($('#np').value).getTime(),dur:0,file});contView()}
   catch(x){$('#ne').textContent=x.message;b.disabled=false}};
 }
 async function contOpen(id){
@@ -116,7 +128,7 @@ async function contOpen(id){
   if(c.state=='ended')body='<p class="big">Musobaqa tugadi.</p>';
   if(!U&&c.state!='ended')body+='<p><button class="pri" id="gb">Qatnaşiş uçun kirish / röyhatdan ötiş</button></p>';
   if(j.mine)body+='<p class="rs">✔ Natijangiz saqlangan.</p>';
-  el.innerHTML=`<section class="card"><p><button id="cb">« Musobaqalar</button></p><h2>${esc(c.title)}</h2><p class="mut">${dt(c.plan)} · ${c.dur/60} daqiqa${c.fileName?' · 📎 '+esc(c.fileName):''}</p>${body}
+  el.innerHTML=`<section class="card"><p><button id="cb">« Musobaqalar</button></p><h2>${esc(c.title)}</h2><p class="mut">${dt(c.plan)}${c.fileName?' · 📎 '+esc(c.fileName):''}</p>${body}
   <h3>Reyting</h3><table><tr><th>#</th><th>Ism</th><th>Söz/daq</th><th>Aniqlik</th><th>Ball</th></tr>${j.board.map((r,i)=>`<tr><td>${i<3?['🥇','🥈','🥉'][i]:i+1}</td><td>${esc(r.name)}</td><td>${r.wpm}</td><td>${r.acc}%</td><td><b>${r.score}</b></td></tr>`).join('')||'<tr><td colspan="5" class="mut">Hali natija yöq</td></tr>'}</table><p class="mut">Ball = tezlik × aniqlik</p></section>`;
   $('#cb').onclick=()=>{CUR=null;clearTimeout(POLL);contView()};
   if($('#gb'))$('#gb').onclick=()=>login(()=>contOpen(id));
@@ -124,14 +136,14 @@ async function contOpen(id){
   if($('#ae'))$('#ae').onclick=async()=>{await api('endNow',{id});tick()};
   // Boşlanişga sanoq va öyin
   if(c.state=='running'&&U&&!j.mine&&!begun){
-   const go=()=>{begun=true;const rem=Math.max(5,Math.round((c.endAt-now())/1000));
+   const go=()=>{begun=true;const rem=0;
     playText(c.text,c.title,()=>{show('cont');contOpen(id)},{tm:rem,cb:async(r,x)=>{
      r.innerHTML='<h2>Yuborilmoqda…</h2>';
      try{const s=await api('submit',{id,n:x.n,acc:x.acc,err:x.errs,sec:x.el,tu:x.timeUp?1:0});snd.win(3);confetti();
       r.innerHTML=`<h2>Natijangiz: ${s.score} ball 🏁</h2><p class="rs">${s.wpm} söz/daq · ${s.acc}% aniqlik</p><p><button class="pri" id="go">Reytingni körişh</button></p>`}
      catch(e){r.innerHTML=`<h2>Yuborib bölmadi</h2><p>${esc(e.message)}</p><p><button class="pri" id="go">Orqaga</button></p>`}
      $('#go').onclick=exit}})};
-   if(c.text&&now()>=c.startAt&&now()<c.startAt+15000){go();return}
+   if(c.text&&now()>=c.startAt){go();return}
    if(left0(c)>0){clearInterval(tk);tk=setInterval(()=>{const n=Math.ceil((c.startAt-now())/1000),e=$('#cd');if(e)e.textContent=n;if(n<=2&&n>0)snd.ding()},500)}
   }
   POLL=setTimeout(tick,c.state=='ended'?10000:c.state=='running'&&c.startAt>now()?Math.min(2500,c.startAt-now()+150):2500);
