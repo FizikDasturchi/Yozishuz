@@ -9,8 +9,8 @@ const sh=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
 const weak=()=>Object.entries(P.keys).filter(([c,v])=>v.t>=5&&v.e/v.t>.05).sort((a,b)=>b[1].e/b[1].t-a[1].e/a[1].t).slice(0,3).map(x=>x[0]);
 
 // Ekranlarni almaştiriş: bir paytda faqat bittasi körinadi
-function show(v){$('#hd').hidden=v!='home'&&v!='tests';$('#home').hidden=v!='home';$('#tests').hidden=v!='tests';$('#pr').hidden=v!='pr';$('#ft').hidden=v=='pr';
- document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',(b.dataset.v=='tests')==(v=='tests')));
+function show(v){curV=v=='pr'?curV:v;$('#hd').hidden=v=='pr';['home','tests','add','cont','usr'].forEach(x=>$('#'+x).hidden=x!=v);$('#pr').hidden=v!='pr';$('#ft').hidden=v=='pr';
+ document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==v));
  window.scrollTo(0,0)}
 
 /* ---------- Bosh sahifa ---------- */
@@ -69,7 +69,7 @@ function gStop(){
  if(S.endTimer){clearTimeout(S.endTimer);S.endTimer=0}
  if(S.game&&S.game.stop)S.game.stop();
 }
-function exit(){clearInterval(S.iv);gStop();jankStop();$('#hsv').style.display='';if(CL&&CL.test)tests();else home()}
+function exit(){clearInterval(S.iv);gStop();jankStop();$('#hsv').style.display='';if(CL&&CL.back)CL.back();else if(CL&&CL.test)tests();else home()}
 // Sekin qurilmani aniqlaş: maşq paytida kadrlar uzoq (>60 ms) bölsa, yengil rejim özi yoqiladi
 let JK={raf:0,last:0,bad:[],on:false};
 function jankStart(){

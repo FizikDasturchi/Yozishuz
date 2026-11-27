@@ -1,7 +1,7 @@
 /* ============================================================
    app.js — tugmalarni ulaş va saytni işga tuşiriş (öxirgi fayl).
    ============================================================ */
-$('#nav').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.v=='tests')tests();else home()};
+$('#nav').onclick=e=>{const b=e.target.closest('button');if(b)navTo(b.dataset.v)};
 $('#tl').onclick=e=>{const b=e.target.closest('button');if(b&&b.dataset.t)startTest(b.dataset.t)};
 $('#units').onclick=e=>{const b=e.target.closest('button');if(b&&!b.disabled)begin(+b.dataset.i)};
 $('#wk').onclick=e=>{if(e.target.closest('button'))problem()};
@@ -23,3 +23,5 @@ $('#lt').onclick=()=>setLite(!LITE,true);
 setLite(LITE,false);
 handsBuild();
 home();
+authUI();
+if(TOK)api('me').then(j=>setU(j.u?{u:j.u}:null)).catch(()=>{});

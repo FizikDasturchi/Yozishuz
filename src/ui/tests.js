@@ -148,6 +148,7 @@ function finishTest(timeUp){
  gStop();
  const wpm=wpmOf(S,timeUp),acc=accOf(S),el=elapsedOf(S,timeUp),n=cn(S),errs=S.err;
  const kph=el>0?Math.round(n*3600/el):0;
+ if(CL.cb){$('#play').hidden=true;const r=$('#res');r.hidden=false;S.resAt=Date.now();window.scrollTo(0,0);CL.cb(r,{wpm,acc,errs,el,n,timeUp});return}   // Qöşiş / Musobaqa: natijani cloud.js ko'rsatadi
  // Umumiy statistika: 10 key faqat vaqtni qöşadi (raqamlar harf tezligi örtaçasini buzmasligi uçun)
  if(S.tk){P.sec+=el;P.day[today()]=(P.day[today()]||0)+el}else addStats(S,timeUp);
  const tb=P.tb=P.tb||{},rec=tb[CL.tid]||{n:0,w:0,a:0,k:0};

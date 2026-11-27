@@ -53,3 +53,6 @@ let LITE=(()=>{
 })();
 // Yulduz: aniqlikka qarab (96%+ — 3, 90%+ — 2, öşandan past — 1)
 const starsOf=acc=>acc>=96?3:acc>=90?2:1;
+
+// Google Apps Script veb-ilova manzili (Deploy > Web app URL). Bösh bölsa — röyhatdan ötiş, musobaqa va Qöşiş işlamaydi.
+const API_URL='';

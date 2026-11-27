@@ -8,10 +8,11 @@
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <!-- Dizayn (ranglar, şriftlar, joylaşuv) src/design/design.js da. Sahifa çizilmasdan oldin yuklanadi. -->
 <script src="src/design/design.js"></script>
+<style>#dg input,#cont input,#usr input,#add input[type=text]{font:inherit;padding:8px;margin:4px 0;border:2px solid var(--bd);border-radius:12px;display:block;width:100%;box-sizing:border-box}#cont input[type=datetime-local],#cont select{display:inline-block;width:auto}#cont table,#usr table{width:100%;border-collapse:collapse}#cont td,#cont th,#usr td,#usr th{padding:6px;text-align:left;border-bottom:1px solid var(--bd)}#dg::backdrop{background:#0006}.big{font-size:20px}</style>
 </head>
 <body>
 <header id="hd"><div class="in"><div class="logo">yozish<span>.uz</span></div><small>Yangi alifboda tez yozişni örganamiz</small>
- <nav id="nav" aria-label="Bölimlar"><button data-v="home" class="on">Darslar</button><button data-v="tests">Sinov</button></nav></div></header>
+ <nav id="nav" aria-label="Bölimlar"><button data-v="home" class="on">Darslar</button><button data-v="tests">Sinov</button><button data-v="add">Qöşiş</button><button data-v="cont">Musobaqa</button><button data-v="usr" id="nu" hidden>Foydalanuvçilar</button></nav><span id="au" style="margin-left:auto"></span></div></header>
 <main>
 <div id="home">
  <section class="card hero"><div id="tr"></div><div class="chips" id="st"></div></section>
@@ -33,6 +34,11 @@
  <div id="tl"></div>
  <p class="mut" id="tn"></p>
 </div>
+
+<div id="add" hidden></div>
+<div id="cont" hidden></div>
+<div id="usr" hidden></div>
+<dialog id="dg" class="card"></dialog>
 
 <div id="pr" hidden>
  <div class="pbar"><button id="ex">« Darslar</button><b id="pt"></b><button id="rd">Qayta</button><button id="lt" title="Zaif kompyuter / telefonda qotişni kamaytiradi">Yengil ✗</button><button id="sn">Tovuş ✓</button></div>
@@ -99,6 +105,7 @@
 <script src="src/ui/input.js"></script>
 <script src="src/ui/tests.js"></script>
 <script src="src/tools/converter.js"></script>
+<script src="src/ui/cloud.js"></script>
 <script src="src/app.js"></script>
 </body>
 </html>

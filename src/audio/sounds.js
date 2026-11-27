@@ -169,3 +169,6 @@ const snd={
  boost:()=>{whoosh(300,2200,.4,.13,0);note(880,.25,.13,.05)},
  fuel:()=>tone(520,.07,'triangle',.07)
 };
+
+// Musobaqa boşlanganda tantanavor tovuş
+snd.fanfare=()=>{if(!SND)return;ac();[523.25,659.25,783.99,1046.5,783.99,1046.5,1318.5].forEach((f,i)=>bell(f,.26,i*.15));[1568,1760,2093].forEach((f,i)=>bell(f,.12,1.1+i*.1))};
