@@ -80,13 +80,13 @@ function route(b){
   }
   if(A=='contests'){
     const rs=all('Results');
-    return {ok:true,now,list:all('Contests').map(c=>({id:c.id,title:c.title,plan:+c.plan,dur:+c.dur,state:st(c,now),startAt:+c.startAt,endAt:+c.endAt,file:!!c.fileName,n:rs.filter(r=>r.cid==c.id).length}))
+    return {ok:true,now,list:all('Contests').map(c=>({id:c.id,title:c.title,by:c.by,plan:+c.plan,dur:+c.dur,state:st(c,now),startAt:+c.startAt,endAt:+c.endAt,file:!!c.fileName,n:rs.filter(r=>r.cid==c.id).length}))
       .sort((a,z)=>a.plan-z.plan)};
   }
   if(A=='contest'){
     const c=all('Contests').find(x=>x.id==b.id); need(c,'Musobaqa topilmadi');
     const s=st(c,now),rs=all('Results').filter(r=>r.cid==c.id).sort((a,z)=>z.score-a.score);
-    return {ok:true,now,c:{id:c.id,title:c.title,plan:+c.plan,dur:+c.dur,state:s,startAt:+c.startAt,endAt:+c.endAt,fileName:c.fileName,
+    return {ok:true,now,c:{id:c.id,title:c.title,by:c.by,plan:+c.plan,dur:+c.dur,state:s,startAt:+c.startAt,endAt:+c.endAt,fileName:c.fileName,
       text:(u&&s=='running'&&now>=+c.startAt-500)?c.text:undefined},
       board:rs.map(r=>({name:r.name,wpm:r.wpm,acc:r.acc,score:r.score})),mine:!!(u&&rs.some(r=>r.uid==u.id))};
   }
@@ -117,7 +117,7 @@ function route(b){
   }
   if(A=='approve'||A=='endNow'||A=='del'){
     need(isAdm(u)); const c=all('Contests').find(x=>x.id==b.id); need(c,'Topilmadi'); const s=st(c,now);
-    if(A=='approve'){need(s=='waiting','Allaqaçon boşlangan');
+    if(A=='approve'){need(u.id==c.by,'Faqat musobaqa tashkilotchisi tasdiqlashi mumkin'); need(s=='waiting','Allaqaçon boşlangan');
       setCell('Contests',c._r,'status','running');setCell('Contests',c._r,'startAt',now+CD);setCell('Contests',c._r,'endAt',0);}
     if(A=='endNow'){need(s=='running');setCell('Contests',c._r,'status','ended');setCell('Contests',c._r,'endAt',now);}
     if(A=='del'){
@@ -128,7 +128,7 @@ function route(b){
     return {ok:true};
   }
   if(A=='submit'){
-    need(u,'Avval röyhatdan öting'); const c=all('Contests').find(x=>x.id==b.id); need(c,'Topilmadi'); st(c,now);
+    need(u,'Avval röyhatdan öting'); const c=all('Contests').find(x=>x.id==b.id); need(c,'Topilmadi'); need(u.id!=c.by,'Musobaqa tashkilotchisi ushbu musobaqada qatnasha olmaydi'); st(c,now);
     need(c.status=='running'&&now>=+c.startAt,'Musobaqa vaqti öçgan');
     need(!all('Results').some(r=>r.cid==c.id&&r.uid==u.id),'Natija allaqaçon saqlangan');
     const n=Math.max(0,Math.min(+b.n||0,c.text.length)),acc=Math.max(0,Math.min(100,+b.acc||0));

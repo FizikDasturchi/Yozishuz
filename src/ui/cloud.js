@@ -100,7 +100,7 @@ async function contView(){
  const up=j.list.filter(c=>c.state!='ended'),past=j.list.filter(c=>c.state=='ended').reverse(),L=CT=='up'?up:past;
  const lab={waiting:'Admin tasdiqini kutmoqda',running:'🔴 Boşlandi',ended:'Tugagan'};
  el.innerHTML=`<section class="card"><h2>Musobaqa</h2><p><button class="${CT=='up'?'pri':''}" id="c1">Kelgusi (${up.length})</button> <button class="${CT=='past'?'pri':''}" id="c2">Ötgan (${past.length})</button> ${isAdm()?'<button id="cn">＋ Yangi musobaqa</button>':''}</p><div id="cf"></div>
- ${L.map(c=>`<div class="tc" style="flex-direction:row;justify-content:space-between;margin:8px 0"><span><b>${esc(c.title)}</b><br><span class="mut">${dt(c.plan)} · ${lab[c.state]} · ${c.n} natija</span></span><span><button class="pri" data-o="${c.id}">Ochiş</button>${isAdm()?` <button data-d="${c.id}" title="Öçiriş">🗑</button>`:''}</span></div>`).join('')||'<p class="mut">Hozircha yöq</p>'}</section>`;
+ ${L.map(c=>`<div class="tc" style="flex-direction:row;justify-content:space-between;margin:8px 0"><span><b>${esc(c.title)}</b><br><span class="mut">${dt(c.plan)} · ${lab[c.state]} · ${c.n} natija</span></span><span><button class="pri" data-o="${c.id}">${U&&isAdm()&&U.id==c.by&&c.state=='waiting'?'Tasdiqlash':'Ochiş'}</button>${isAdm()?` <button data-d="${c.id}" title="Öçiriş">🗑</button>`:''}</span></div>`).join('')||'<p class="mut">Hozircha yöq</p>'}</section>`;
  $('#c1').onclick=()=>{CT='up';contView()};$('#c2').onclick=()=>{CT='past';contView()};
  if(isAdm())$('#cn').onclick=newContest;
  el.onclick=async e=>{const o=e.target.closest('[data-o]'),d=e.target.closest('[data-d]');
@@ -128,7 +128,7 @@ async function contOpen(id){
   let j;try{j=await api('contest',{id})}catch(e){el.innerHTML=`<section class="card">${esc(e.message)}</section>`;return}
   if(CUR!==id||$('#cont').hidden)return;
   const c=j.c,adm=isAdm();let body='';
-  if(c.state=='waiting')body=`<p class="big">Musobaqa soat <b>${dt(c.plan)}</b> da Admin tasdiqlaganidan söng boşlanadi.</p>${adm?'<button class="pri" id="ap">✅ Tasdiqlaş va boşlaş</button>':'<p class="mut">Sahifada qoling — boşlanganda tovuş eşitiladi.</p>'}`;
+  if(c.state=='waiting')body=`<p class="big">Musobaqa soat <b>${dt(c.plan)}</b> da tashkilotchisi tasdiqlaganidan söng boşlanadi.</p>${adm&&U.id==c.by?'<button class="pri" id="ap">✅ Tasdiqlaş va boşlaş</button>':'<p class="mut">Sahifada qoling — boşlanganda tovuş eşitiladi.</p>'}`;
   if(c.state=='running'){
    const left=Math.ceil((c.startAt-now())/1000);
    if(!played&&left>0){played=true;ac();snd.fanfare()}
@@ -145,7 +145,7 @@ async function contOpen(id){
   if($('#ap'))$('#ap').onclick=async e=>{e.target.disabled=true;try{await api('approve',{id});snd.fanfare();tick()}catch(x){alert(x.message)}};
   if($('#ae'))$('#ae').onclick=async()=>{await api('endNow',{id});tick()};
   // Boşlanişga sanoq va öyin
-  if(c.state=='running'&&U&&!j.mine&&!begun){
+  if(c.state=='running'&&U&&U.id!=c.by&&!j.mine&&!begun){
    const go=()=>{begun=true;const rem=0;
     playText(c.text,c.title,()=>{show('cont');contOpen(id)},{tm:rem,cb:async(r,x)=>{
      r.innerHTML='<h2>Yuborilmoqda…</h2>';
