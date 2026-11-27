@@ -18,11 +18,19 @@ function setup(){
   PR.setProperties({SS:ss.getId(), FILES:files.getId(), SECRET:Utilities.getUuid()+Utilities.getUuid()});
   return 'Tayyor';
 }
-function norm(s){return String(s||'').toLowerCase().replace(/[şŞ]/g,'sh').replace(/[çÇ]/g,'ch').replace(/[öÖ]/g,'o').replace(/[ğĞ]/g,'g').replace(/[ʻʼ’‘`´]/g,'').replace(/[^a-z]/g,'');}
+function latinize(s){
+  const map={'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'j','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'x','ц':'s','ч':'ç','ш':'ş','щ':'ş','ъ':'','ь':'','ы':'i','э':'e','ю':'yu','я':'ya','ў':'ö','ғ':'ğ','қ':'q','ҳ':'h'};
+  return String(s||'').replace(/[А-ЯЁЎҒҚҲЦЧШЩЪЬЫЭЮЯа-яёўғқҳцчшщъьыэюя]/g,c=>{let v=map[c.toLowerCase()];if(v===undefined)return c;return c===c.toUpperCase()?v.toUpperCase():v;})
+    .replace(/[oO]\s*['ʻʼ’‘`´]/g,c=>c[0]=='O'?'Ö':'ö').replace(/[gG]\s*['ʻʼ’‘`´]/g,c=>c[0]=='G'?'Ğ':'ğ')
+    .replace(/sh/gi,m=>m==='SH'?'Ş':m==='Sh'?'Ş':'ş').replace(/ch/gi,m=>m==='CH'?'Ç':m==='Ch'?'Ç':'ç');
+}
+function norm(s){return latinize(s).toLowerCase().replace(/[ş]/g,'sh').replace(/[ç]/g,'ch').replace(/[ö]/g,'o').replace(/[ğ]/g,'g').replace(/[ʻʼ’‘`´]/g,'').replace(/[^a-z]/g,'');}
 function sheet(n){return SpreadsheetApp.openById(PR.getProperty('SS')).getSheetByName(n);}
-function all(n){const v=sheet(n).getDataRange().getValues(),h=v.shift();return v.map((r,i)=>{const o={_r:i+2};h.forEach((k,j)=>o[k]=r[j]);return o;});}
-function put(n,o){sheet(n).appendRow(H[n].map(k=>o[k]===undefined?'':o[k]));}
-function setCell(n,r,k,v){sheet(n).getRange(r,H[n].indexOf(k)+1).setValue(v);}
+let READ_CACHE={};
+function all(n){if(READ_CACHE[n])return READ_CACHE[n];const v=sheet(n).getDataRange().getValues(),h=v.shift();return READ_CACHE[n]=v.map((r,i)=>{const o={_r:i+2};h.forEach((k,j)=>o[k]=r[j]);return o;});}
+function invalidate(n){delete READ_CACHE[n];}
+function put(n,o){sheet(n).appendRow(H[n].map(k=>o[k]===undefined?'':o[k]));invalidate(n);}
+function setCell(n,r,k,v){sheet(n).getRange(r,H[n].indexOf(k)+1).setValue(v);invalidate(n);}
 function hash(p,salt){let d=salt+p;for(let i=0;i<100;i++)d=Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,d+salt));return d;}
 function sign(s){return Utilities.base64EncodeWebSafe(Utilities.computeHmacSha256Signature(s,PR.getProperty('SECRET')));}
 function mkToken(uid){const b=uid+'.'+(Date.now()+30*864e5);return b+'.'+sign(b);}
@@ -37,10 +45,12 @@ function st(c,now){
   return c.status;
 }
 function doPost(e){
-  let out;
-  const lock=LockService.getScriptLock(); lock.waitLock(25000);
-  try{ out=route(JSON.parse(e.postData.contents)); }catch(err){ out={ok:false,e:String(err.message||err)}; }
-  finally{ lock.releaseLock(); }
+  let out,body;READ_CACHE={};
+  try{body=JSON.parse(e.postData.contents);}catch(err){return ContentService.createTextOutput(JSON.stringify({ok:false,e:'JSON xato'})).setMimeType(ContentService.MimeType.JSON);}
+  const writes=['register','changePass','setRole','deleteUser','create','approve','endNow','del','submit'];
+  const lock=LockService.getScriptLock(),useLock=writes.includes(body.a);
+  try{if(useLock)lock.waitLock(12000);out=route(body);}catch(err){out={ok:false,e:String(err.message||err)};}
+  finally{if(useLock&&lock.hasLock())lock.releaseLock();}
   return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
 }
 function doGet(){return ContentService.createTextOutput('yozish.uz API ishlayapti');}
@@ -49,7 +59,7 @@ function route(b){
   const now=Date.now(), u=auth(b.t), A=b.a;
   const need=(c,m)=>{if(!c)throw new Error(m||'Ruxsat yöq');};
   if(A=='register'){
-    const ism=String(b.ism||'').trim(),fam=String(b.fam||'').trim(),p=String(b.p||'');
+    const ism=latinize(String(b.ism||'').trim()),fam=latinize(String(b.fam||'').trim()),p=String(b.p||'');
     need(ism&&fam,'Ism va familiyani yozing'); need(p.length>=6,'Parol kamida 6 belgi bölsin');
     const key=norm(ism)+'|'+norm(fam); need(norm(ism)&&norm(fam),'Ism-familiya notöğri');
     need(!all('Users').some(x=>x.key==key),'Bu ism-familiya allaqaçon röyhatdan ötgan');
@@ -92,17 +102,17 @@ function route(b){
   if(A=='deleteUser'){
     need(u&&u.role=='main','Faqat asosiy adminlar');
     const x=all('Users').find(r=>r.id==b.id); need(x&&x.role!='main','Asosiy adminni öçirib bölmaydi');
-    const rs=all('Results').filter(r=>r.uid==x.id).map(r=>r._r).reverse(); rs.forEach(r=>sheet('Results').deleteRow(r));
-    sheet('Users').deleteRow(x._r); return {ok:true};
+    const rs=all('Results').filter(r=>r.uid==x.id).map(r=>r._r).reverse(); rs.forEach(r=>sheet('Results').deleteRow(r));invalidate('Results');
+    sheet('Users').deleteRow(x._r);invalidate('Users'); return {ok:true};
   }
   if(A=='create'){
-    need(isAdm(u)); const title=String(b.title||'').trim(),text=String(b.text||'').trim();
+    need(isAdm(u)); const title=latinize(String(b.title||'').trim()),text=latinize(String(b.text||'').trim());
     need(title&&text.length>=20,'Nom va matn (kamida 20 belgi) kerak'); need(text.length<=10000,'Matn 10 000 belgidan oşmasin');
     let fileId='',fileName='';
     if(b.file){need(b.file.b64.length<7e6,'Fayl 5 MB dan oşmasin');
       const f=DriveApp.getFolderById(PR.getProperty('FILES')).createFile(Utilities.newBlob(Utilities.base64Decode(b.file.b64),b.file.mime,b.file.name));
       fileId=f.getId();fileName=b.file.name;}
-    put('Contests',{id:Utilities.getUuid(),title,text,fileId,fileName,plan:+b.plan,dur:Math.max(30,Math.min(1800,+b.dur||120)),status:'waiting',startAt:0,endAt:0,by:u.id,created:now});
+    put('Contests',{id:Utilities.getUuid(),title,text,fileId,fileName,plan:+b.plan,dur:0,status:'waiting',startAt:0,endAt:0,by:u.id,created:now});
     return {ok:true};
   }
   if(A=='approve'||A=='endNow'||A=='del'){
@@ -112,8 +122,8 @@ function route(b){
     if(A=='endNow'){need(s=='running');setCell('Contests',c._r,'status','ended');setCell('Contests',c._r,'endAt',now);}
     if(A=='del'){
       if(c.fileId){try{DriveApp.getFileById(c.fileId).setTrashed(true);}catch(e){}}
-      const rs=all('Results').filter(r=>r.cid==c.id).map(r=>r._r).reverse(); rs.forEach(r=>sheet('Results').deleteRow(r));
-      sheet('Contests').deleteRow(c._r);
+      const rs=all('Results').filter(r=>r.cid==c.id).map(r=>r._r).reverse(); rs.forEach(r=>sheet('Results').deleteRow(r));invalidate('Results');
+      sheet('Contests').deleteRow(c._r);invalidate('Contests');
     }
     return {ok:true};
   }

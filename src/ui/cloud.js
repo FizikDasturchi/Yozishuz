@@ -4,6 +4,12 @@
    ============================================================ */
 let U=null,TOK='',OFF=0,POLL=0,CUR=null;
 try{TOK=localStorage.getItem('yozish.tok')||''}catch(e){}
+// Kiril, eski lotin va yangi lotin yozuvini yangi alifboga keltirish.
+function toNewAlphabet(s){
+ const m={'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'j','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'x','ц':'s','ч':'ch','ш':'sh','щ':'sh','ъ':'','ь':'','ы':'i','э':'e','ю':'yu','я':'ya','ў':'oʻ','ғ':'gʻ','қ':'q','ҳ':'h'};
+ let x=String(s||'').replace(/[А-ЯЁЎҒҚҲЦЧШЩЪЬЫЭЮЯа-яёўғқҳцчшщъьыэюя]/g,ch=>{const v=m[ch.toLowerCase()];if(v===undefined)return ch;return ch===ch.toUpperCase()?v.toUpperCase():v;});
+ return conv(x).replace(/[oO]\s*['ʻʼ’‘`´]/g,z=>z[0]=='O'?'Ö':'ö').replace(/[gG]\s*['ʻʼ’‘`´]/g,z=>z[0]=='G'?'Ğ':'ğ');
+}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 const now=()=>Date.now()+OFF, p2=n=>String(n).padStart(2,'0');
 const dt=ms=>{const d=new Date(ms);return `${p2(d.getDate())}.${p2(d.getMonth()+1)}.${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`};
@@ -62,7 +68,7 @@ async function readFile(f){
  return f.text();
 }
 // Yangi alifboga ötkazadi, belgilarni klaviaturaga moslaydi
-const clean=t=>conv(t).replace(/[“”«»„]/g,'"').replace(/[–—]/g,'-').replace(/\s+/g,' ').trim();
+const clean=t=>toNewAlphabet(t).replace(/[“”«»„]/g,'"').replace(/[–—]/g,'-').replace(/\s+/g,' ').trim();
 const picker=id=>`<input type="file" id="${id}f" accept=".pdf,.docx,.txt"><textarea id="${id}t" style="min-height:160px" placeholder="Matnni bu yerga yozing / qöying yoki PDF, DOCX fayl tanlang. Keyin kerakli qismini sişqonça bilan belgilang (belgilamasangiz — hammasi olinadi). Eski alifbodagi matn avtomatik yangi alifboga ötadi."></textarea><p class="mut" id="${id}i"></p>`;
 function bindPicker(id){$('#'+id+'f').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#'+id+'i').textContent='Öqilmoqda…';
  try{$('#'+id+'t').value=(await readFile(f)).replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();$('#'+id+'i').textContent='Tayyor. Kerakli qismini belgilang.'}catch(x){$('#'+id+'i').textContent='Öqib bölmadi: '+x.message}}}
@@ -92,7 +98,7 @@ async function contView(){
  el.innerHTML='<section class="card">Yuklanmoqda…</section>';
  let j;try{j=await api('contests')}catch(e){el.innerHTML=`<section class="card">${esc(e.message)}</section>`;return}
  const up=j.list.filter(c=>c.state!='ended'),past=j.list.filter(c=>c.state=='ended').reverse(),L=CT=='up'?up:past;
- const lab={waiting:'Admin tasdiqlaşini kutmoqda',running:'🔴 Boşlandi',ended:'Tugagan'};
+ const lab={waiting:'Admin tasdiqini kutmoqda',running:'🔴 Boşlandi',ended:'Tugagan'};
  el.innerHTML=`<section class="card"><h2>Musobaqa</h2><p><button class="${CT=='up'?'pri':''}" id="c1">Kelgusi (${up.length})</button> <button class="${CT=='past'?'pri':''}" id="c2">Ötgan (${past.length})</button> ${isAdm()?'<button id="cn">＋ Yangi musobaqa</button>':''}</p><div id="cf"></div>
  ${L.map(c=>`<div class="tc" style="flex-direction:row;justify-content:space-between;margin:8px 0"><span><b>${esc(c.title)}</b><br><span class="mut">${dt(c.plan)} · ${lab[c.state]} · ${c.n} natija</span></span><span><button class="pri" data-o="${c.id}">Ochiş</button>${isAdm()?` <button data-d="${c.id}" title="Öçiriş">🗑</button>`:''}</span></div>`).join('')||'<p class="mut">Hozircha yöq</p>'}</section>`;
  $('#c1').onclick=()=>{CT='up';contView()};$('#c2').onclick=()=>{CT='past';contView()};
@@ -108,12 +114,13 @@ function newContest(){
  $('#ns').onclick=async()=>{const fl=$('#nnf').files[0],b=$('#ns');let file;
   try{if(fl&&/\.(pdf|docx)$/i.test(fl.name)){if(fl.size>4e6)throw new Error('Fayl 4 MB dan oşmasin');
     file={name:fl.name,mime:fl.type||'application/octet-stream',b64:await new Promise(ok=>{const r=new FileReader();r.onload=()=>ok(r.result.split(',')[1]);r.readAsDataURL(fl)})}}
-   b.disabled=true;await api('create',{title:$('#nt').value,text:pickText('n'),plan:new Date($('#np').value).getTime(),dur:0,file});contView()}
+   b.disabled=true;await api('create',{title:clean($('#nt').value),text:pickText('n'),plan:new Date($('#np').value).getTime(),dur:0,file});contView()}
   catch(x){$('#ne').textContent=x.message;b.disabled=false}};
 }
 async function contOpen(id){
  clearTimeout(POLL);CUR=id;const el=$('#cont');let played=false,begun=false,tk=0;
  const tick=async()=>{
+  if(tk){clearInterval(tk);tk=0;}
   if(CUR!==id||curV!=='cont'||!$('#pr').hidden&&!begun){clearInterval(tk);return}
   let j;try{j=await api('contest',{id})}catch(e){el.innerHTML=`<section class="card">${esc(e.message)}</section>`;return}
   if(CUR!==id||$('#cont').hidden)return;
@@ -146,7 +153,7 @@ async function contOpen(id){
    if(c.text&&now()>=c.startAt){go();return}
    if(left0(c)>0){clearInterval(tk);tk=setInterval(()=>{const n=Math.ceil((c.startAt-now())/1000),e=$('#cd');if(e)e.textContent=n;if(n<=2&&n>0)snd.ding()},500)}
   }
-  POLL=setTimeout(tick,c.state=='ended'?10000:c.state=='running'&&c.startAt>now()?Math.min(2500,c.startAt-now()+150):2500);
+  POLL=setTimeout(tick,c.state=='ended'?12000:(c.state=='running'&&c.startAt>now()?1000:4000));
  };
  const left0=c=>c.startAt-now();
  tick();
