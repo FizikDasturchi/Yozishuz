@@ -92,7 +92,7 @@ function start(){
  $('#res').hidden=true;$('#res').innerHTML='';$('#play').hidden=false;
  $('#gm').hidden=!S.gm;$('#gm').innerHTML='';
  $('#hsv').style.display=(S.gm||LITE||CL.test)?'none':'';
- $('#handPhoto').style.display=(S.gm||LITE||CL.test)?'none':'';
+
  $('#kbs').hidden=!!CL.test;$('#hint').innerHTML='';   // sinovda klaviatura va qöllar körsatilmaydi
  $('#ex').textContent=CL.test?'« Sinov':'« Darslar';
  $('#txt').className=S.tk?'tk':'';   // öyinda (va yengil rejimda) qöllar çizilmaydi — yengil va silliq işlaydi

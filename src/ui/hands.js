@@ -37,13 +37,13 @@ function smoothD(pts,mir){
  }
  return d+'Z';
 }
-const fingerSVG=id=>`<g class="fg f-${id[1]=='t'?'th':id}" data-f="${id}"><path class="fs"/><path class="fa"/><path class="fh"/><path class="fc"/><path class="fc"/></g>`;
+const fingerSVG=id=>`<g class="fg f-${id}" data-f="${id}"><path class="fs"/><path class="fa"/><path class="fh"/><path class="fc"/><path class="fc"/></g>`;
 
 function handsBuild(){
  const svg=$('#hsv');if(!svg)return;
  let o='<rect class="col" id="hcol" x="0" y="0" width="1" height="1" rx=".14" style="display:none"/>';
  ['l','r'].forEach(s=>{
-  const fl=HIDS.filter(id=>id[0]==s),cl=id=>'f-'+(id[1]=='t'?'th':id),pd=smoothD(PALM,s=='r');
+  const fl=HIDS.filter(id=>id[0]==s),cl=id=>'f-'+id,pd=smoothD(PALM,s=='r');
   const tn=[2.0,3.05,4.2,5.3].map(x=>{const b=3.4+(x-3.7)*.3;return `M${s=='r'?MIRX-x:x} 3.9L${s=='r'?MIRX-b:b} 7.2`}).join('');
   o+=`<g class="hand" data-h="${s}"><g class="ol"><path class="po" d="${pd}"/>${fl.map(id=>`<path class="fo ${cl(id)}" data-o="${id}"/>`).join('')}</g><g class="fl"><path class="palm" d="${pd}"/><path class="tn" d="${tn}"/>${fl.map(fingerSVG).join('')}</g></g>`;
  });

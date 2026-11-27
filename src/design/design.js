@@ -95,6 +95,8 @@ button.sm{padding:4px 14px;font-size:15px}
 .f-rm{--fc:#4a86ff;--fp:#dae6ff}
 .f-rr{--fc:#9b5cff;--fp:#eadcff}
 .f-rp{--fc:#ec4fbe;--fp:#fcdcf1}
+.f-lt{--fc:#ffa94d;--fp:#ffe8cc}
+.f-rt{--fc:#ff7b54;--fp:#ffe0d6}
 .f-th{--fc:#ffa94d;--fp:#ffe8cc}
 
 /* Klaviatura. Qator balandligi eniga bog'langan (1 tugma = 1 birlik), qöllar şu birlikda çiziladi */
@@ -108,20 +110,21 @@ button.sm{padding:4px 14px;font-size:15px}
 .k.n{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--fc)}
 .k.hm::after{content:"";position:absolute;bottom:14%;width:28%;height:3px;border-radius:2px;background:var(--fc)}
 .k.x{background:var(--fc);color:#fff;transform:translateY(-3px) scale(1.1);box-shadow:0 6px 0 rgba(0,0,0,.18),0 0 18px var(--fc);position:relative;z-index:2}
-.kbsp{aspect-ratio:15/3.2}
+.kbsp{aspect-ratio:15/5.2}
 
 /* Qöllar (klaviatura üstida, yarim şaffof, haqiqiydek). Faol barmoq töliq rangga kiradi */
 #kbs{position:relative}
-#hsv{position:absolute;left:10px;top:10px;width:calc(100% - 20px);height:auto;aspect-ratio:15/6.9;overflow:visible;pointer-events:none;z-index:5;visibility:hidden}
-#handPhoto{position:absolute;left:10px;top:10px;width:calc(100% - 20px);height:auto;display:block;opacity:.70;pointer-events:none;user-select:none;-webkit-user-drag:none;z-index:5}
-@media(max-width:560px){#handPhoto{left:6px;top:8px;width:calc(100% - 12px);opacity:.68}}
-.hand{opacity:.72}
+#hsv{position:absolute;left:10px;top:10px;width:calc(100% - 20px);height:auto;aspect-ratio:15/8.2;overflow:visible;pointer-events:none;z-index:5;visibility:visible}
+@media(max-width:560px){#hsv{left:6px;top:8px;width:calc(100% - 12px)}}
+.hand{opacity:.96}
 .po,.fo{fill:none;stroke:#b07a58;stroke-width:.14;stroke-linejoin:round}
 .fo.on{stroke:#2a3b4d;stroke:color-mix(in srgb,var(--fc) 55%,#000)}
-.palm,.fg .fs{fill:var(--skin);stroke:none}
+.palm{fill:var(--skin);stroke:none}
+.fg .fs{fill:color-mix(in srgb,var(--skin) 76%,var(--fc) 24%);stroke:none}
+.fg.on .fs,.fg.on2 .fs{fill:color-mix(in srgb,var(--skin) 35%,var(--fc) 65%)}
 .tn{fill:none;stroke:#b07a58;stroke-opacity:.2;stroke-width:.05;stroke-linecap:round}
-.fg .fa{fill:var(--fc);opacity:0}
-.fg.on .fa,.fg.on2 .fa{opacity:.9}
+.fg .fa{fill:var(--fc);opacity:.18}
+.fg.on .fa,.fg.on2 .fa{opacity:.92}
 .fg .fh{fill:none;stroke:#fff;stroke-opacity:.35;stroke-width:.1;stroke-linecap:round;stroke-linejoin:round}
 .fg .fc{fill:none;stroke:#a9693f;stroke-opacity:.33;stroke-width:.03;stroke-linecap:round}
 .col{fill:var(--fc);opacity:.2}
