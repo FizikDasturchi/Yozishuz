@@ -55,4 +55,4 @@ let LITE=(()=>{
 const starsOf=acc=>acc>=96?3:acc>=90?2:1;
 
 // Google Apps Script veb-ilova manzili (Deploy > Web app URL). Bösh bölsa — röyhatdan ötiş, musobaqa va Qöşiş işlamaydi.
-const API_URL='';
+const API_URL='https://script.google.com/macros/s/AKfycby3ezexLlG6DKgJtw-0Fei3fRJinY2GltGETIfdGHW3jz2toU9r9pjqBpKkaA0k8f35/exec';
