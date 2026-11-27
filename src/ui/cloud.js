@@ -71,7 +71,7 @@ async function readFile(f){
 const clean=t=>toNewAlphabet(t).replace(/[“”«»„]/g,'"').replace(/[–—]/g,'-').replace(/\s+/g,' ').trim();
 const picker=id=>`<input type="file" id="${id}f" accept=".pdf,.docx,.txt"><textarea id="${id}t" style="min-height:160px" placeholder="Matnni bu yerga yozing / qöying yoki PDF, DOCX fayl tanlang. Keyin kerakli qismini sişqonça bilan belgilang (belgilamasangiz — hammasi olinadi). Eski alifbodagi matn avtomatik yangi alifboga ötadi."></textarea><p class="mut" id="${id}i"></p>`;
 function bindPicker(id){$('#'+id+'f').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#'+id+'i').textContent='Öqilmoqda…';
- try{$('#'+id+'t').value=(await readFile(f)).replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();$('#'+id+'i').textContent='Tayyor. Kerakli qismini belgilang.'}catch(x){$('#'+id+'i').textContent='Öqib bölmadi: '+x.message}}}
+ try{const extracted=(await readFile(f)).replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n').trim();$('#'+id+'t').value=extracted;$('#'+id+'i').textContent=extracted.length?'Tayyor — matn textarea ichiga chiqarildi. Kerakli qismini belgilang; belgilamasangiz hammasi olinadi.':'PDF ichidan matn ajratilmadi. Bu skanerlangan (rasm) PDF bo‘lishi mumkin; matnni textarea ichiga qo‘lda kiriting.'}catch(x){$('#'+id+'i').textContent='Öqib bölmadi: '+x.message}}}
 function pickText(id){const t=$('#'+id+'t'),a=t.selectionStart,b=t.selectionEnd;return clean(a<b?t.value.slice(a,b):t.value)}
 
 /* ---------- Matnni yozib körişh (umumiy öyin ekrani) ---------- */
@@ -109,12 +109,15 @@ async function contView(){
 }
 function newContest(){
  const f=$('#cf'),d=new Date(Date.now()+36e5);d.setMinutes(0);
- f.innerHTML=`<div class="card" style="background:#f1faff;margin:10px 0"><input id="nt" placeholder="Musobaqa nomi" style="width:100%"><p>Boşlanişi: <input type="datetime-local" id="np" value="${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}T${p2(d.getHours())}:00"></p>${picker('n')}<button class="pri" id="ns">Saqlaş</button> <span class="mut" id="ne"></span></div>`;
+ f.innerHTML=`<div class="card" style="background:#f1faff;margin:10px 0"><label for="nTitle"><b>Musobaqa nomi (majburiy)</b></label><input id="nTitle" placeholder="Musobaqa nomi" style="width:100%"><p>Boşlanişi: <input type="datetime-local" id="np" value="${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}T${p2(d.getHours())}:00"></p>${picker('n')}<button class="pri" id="ns">Saqlaş</button> <span class="mut" id="ne"></span></div>`;
  bindPicker('n');
- $('#ns').onclick=async()=>{const fl=$('#nnf').files[0],b=$('#ns');let file;
-  try{if(fl&&/\.(pdf|docx)$/i.test(fl.name)){if(fl.size>4e6)throw new Error('Fayl 4 MB dan oşmasin');
+ $('#ns').onclick=async()=>{const fl=$('#nf').files[0],b=$('#ns');let file;
+  try{const title=clean($('#nTitle').value),text=pickText('n');
+   if(!title)throw new Error('Musobaqa nomini kiriting.');
+   if(text.length<20)throw new Error('Matn topilmadi yoki juda qisqa (kamida 20 belgi). PDF/DOCX matnini textarea ichida tekshiring.');
+   if(fl&&/\.(pdf|docx)$/i.test(fl.name)){if(fl.size>4e6)throw new Error('Fayl 4 MB dan oşmasin');
     file={name:fl.name,mime:fl.type||'application/octet-stream',b64:await new Promise(ok=>{const r=new FileReader();r.onload=()=>ok(r.result.split(',')[1]);r.readAsDataURL(fl)})}}
-   b.disabled=true;await api('create',{title:clean($('#nt').value),text:pickText('n'),plan:new Date($('#np').value).getTime(),dur:0,file});contView()}
+   b.disabled=true;$('#ne').textContent='Saqlanmoqda…';await api('create',{title,text,plan:new Date($('#np').value).getTime(),dur:0,file});contView()}
   catch(x){$('#ne').textContent=x.message;b.disabled=false}};
 }
 async function contOpen(id){
