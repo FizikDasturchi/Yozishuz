@@ -80,13 +80,13 @@ function route(b){
   }
   if(A=='contests'){
     const rs=all('Results');
-    return {ok:true,now,list:all('Contests').map(c=>({id:c.id,title:c.title,by:c.by,plan:+c.plan,dur:+c.dur,state:st(c,now),startAt:+c.startAt,endAt:+c.endAt,file:!!c.fileName,n:rs.filter(r=>r.cid==c.id).length}))
+    return {ok:true,now,list:all('Contests').map(c=>({id:c.id,title:c.title,by:c.by,owner:!!(u&&String(u.id)===String(c.by)),plan:+c.plan,dur:+c.dur,state:st(c,now),startAt:+c.startAt,endAt:+c.endAt,file:!!c.fileName,n:rs.filter(r=>r.cid==c.id).length}))
       .sort((a,z)=>a.plan-z.plan)};
   }
   if(A=='contest'){
     const c=all('Contests').find(x=>x.id==b.id); need(c,'Musobaqa topilmadi');
     const s=st(c,now),rs=all('Results').filter(r=>r.cid==c.id).sort((a,z)=>z.score-a.score);
-    return {ok:true,now,c:{id:c.id,title:c.title,by:c.by,plan:+c.plan,dur:+c.dur,state:s,startAt:+c.startAt,endAt:+c.endAt,fileName:c.fileName,
+    return {ok:true,now,c:{id:c.id,title:c.title,by:c.by,owner:!!(u&&String(u.id)===String(c.by)),plan:+c.plan,dur:+c.dur,state:s,startAt:+c.startAt,endAt:+c.endAt,fileName:c.fileName,
       text:(u&&s=='running'&&now>=+c.startAt-500)?c.text:undefined},
       board:rs.map(r=>({name:r.name,wpm:r.wpm,acc:r.acc,score:r.score})),mine:!!(u&&rs.some(r=>r.uid==u.id))};
   }

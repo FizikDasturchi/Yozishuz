@@ -92,20 +92,21 @@ function addView(){
 }
 
 /* ---------- Musobaqa ---------- */
-let CT='up';
+let CT='up', CONTEST_BUSY=false;
 async function contView(){
- show('cont');const el=$('#cont');
+ show('cont');CUR=null;clearTimeout(POLL);const el=$('#cont');
  el.innerHTML='<section class="card">Yuklanmoqda…</section>';
- let j;try{j=await api('contests')}catch(e){el.innerHTML=`<section class="card">${esc(e.message)}</section>`;return}
+ let j;try{j=await api('contests')}catch(e){el.innerHTML=`<section class="card">${esc(e.message)}<p><button id="cr">Qayta yuklash</button></p></section>`;$('#cr').onclick=contView;return}
  const up=j.list.filter(c=>c.state!='ended'),past=j.list.filter(c=>c.state=='ended').reverse(),L=CT=='up'?up:past;
  const lab={waiting:'Admin tasdiqini kutmoqda',running:'🔴 Boşlandi',ended:'Tugagan'};
  el.innerHTML=`<section class="card"><h2>Musobaqa</h2><p><button class="${CT=='up'?'pri':''}" id="c1">Kelgusi (${up.length})</button> <button class="${CT=='past'?'pri':''}" id="c2">Ötgan (${past.length})</button> ${isAdm()?'<button id="cn">＋ Yangi musobaqa</button>':''}</p><div id="cf"></div>
- ${L.map(c=>`<div class="tc" style="flex-direction:row;justify-content:space-between;margin:8px 0"><span><b>${esc(c.title)}</b><br><span class="mut">${dt(c.plan)} · ${lab[c.state]} · ${c.n} natija</span></span><span><button class="pri" data-o="${c.id}">${U&&isAdm()&&U.id==c.by&&c.state=='waiting'?'Tasdiqlash':'Ochiş'}</button>${isAdm()?` <button data-d="${c.id}" title="Öçiriş">🗑</button>`:''}</span></div>`).join('')||'<p class="mut">Hozircha yöq</p>'}</section>`;
+ ${L.map(c=>`<div class="tc" style="flex-direction:row;justify-content:space-between;margin:8px 0"><span><b>${esc(c.title)}</b><br><span class="mut">${dt(c.plan)} · ${lab[c.state]} · ${c.n} natija</span></span><span><button class="pri" data-o="${c.id}">${c.owner&&c.state=='waiting'?'Tasdiqlash':'Ochiş'}</button>${isAdm()?` <button data-d="${c.id}" title="Öçiriş">🗑</button>`:''}</span></div>`).join('')||'<p class="mut">Hozircha yöq</p>'}</section>`;
  $('#c1').onclick=()=>{CT='up';contView()};$('#c2').onclick=()=>{CT='past';contView()};
  if(isAdm())$('#cn').onclick=newContest;
  el.onclick=async e=>{const o=e.target.closest('[data-o]'),d=e.target.closest('[data-d]');
-  if(o)contOpen(o.dataset.o);
-  if(d){if(!d.dataset.s){d.dataset.s=1;d.textContent='Aniqmi?';return}d.disabled=true;try{await api('del',{id:d.dataset.d});contView()}catch(x){alert(x.message)}}};
+  if(o){o.disabled=true;contOpen(o.dataset.o)}
+  if(d){if(!d.dataset.s){d.dataset.s=1;d.textContent='Aniqmi?';return}d.disabled=true;try{await api('del',{id:d.dataset.d});contView()}catch(x){alert(x.message);d.disabled=false}}
+ };
 }
 function newContest(){
  const f=$('#cf'),d=new Date(Date.now()+36e5);d.setMinutes(0);
@@ -121,45 +122,43 @@ function newContest(){
   catch(x){$('#ne').textContent=x.message;b.disabled=false}};
 }
 async function contOpen(id){
- clearTimeout(POLL);CUR=id;const el=$('#cont');let played=false,begun=false,tk=0;
+ clearTimeout(POLL);CUR=id;CONTEST_BUSY=false;const el=$('#cont');let played=false,begun=false,tk=0;
  const tick=async()=>{
-  if(tk){clearInterval(tk);tk=0;}
-  if(CUR!==id||curV!=='cont'||!$('#pr').hidden&&!begun){clearInterval(tk);return}
-  let j;try{j=await api('contest',{id})}catch(e){el.innerHTML=`<section class="card">${esc(e.message)}</section>`;return}
-  if(CUR!==id||$('#cont').hidden)return;
+  if(CUR!==id||curV!=='cont'||$('#cont').hidden)return;
+  if(CONTEST_BUSY)return;CONTEST_BUSY=true;
+  let j;try{j=await api('contest',{id})}catch(e){CONTEST_BUSY=false;el.innerHTML=`<section class="card"><p>${esc(e.message)}</p><button id="cb">« Musobaqalar</button><button id="retry">Qayta urinish</button></section>`;$('#cb').onclick=()=>{CUR=null;clearTimeout(POLL);contView()};$('#retry').onclick=tick;return}
+  CONTEST_BUSY=false;if(CUR!==id||$('#cont').hidden)return;
   const c=j.c,adm=isAdm();let body='';
-  if(c.state=='waiting')body=`<p class="big">Musobaqa soat <b>${dt(c.plan)}</b> da tashkilotchisi tasdiqlaganidan söng boşlanadi.</p>${adm&&U.id==c.by?'<button class="pri" id="ap">✅ Tasdiqlaş va boşlaş</button>':'<p class="mut">Sahifada qoling — boşlanganda tovuş eşitiladi.</p>'}`;
+  if(c.state=='waiting')body=`<p class="big">Musobaqa soat <b>${dt(c.plan)}</b> da tashkilotchisi tasdiqlaganidan söng boşlanadi.</p>${c.owner?'<button class="pri" id="ap">✅ Tasdiqlaş va boşlaş</button>':'<p class="mut">Sahifada qoling — boşlanganda avtomatik yangilanadi.</p>'}`;
   if(c.state=='running'){
    const left=Math.ceil((c.startAt-now())/1000);
    if(!played&&left>0){played=true;ac();snd.fanfare()}
    body=left>0?`<p class="big">Boşlanişiga: <b id="cd">${left}</b></p>`:`<p class="big">Musobaqa davom etmoqda…</p>`;
-   if(adm)body+='<button id="ae">⏹ Tugatiş</button>';
+   if(adm&&c.owner)body+='<button id="ae">⏹ Tugatiş</button>';
   }
   if(c.state=='ended')body='<p class="big">Musobaqa tugadi.</p>';
   if(!U&&c.state!='ended')body+='<p><button class="pri" id="gb">Qatnaşiş uçun kirish / röyhatdan ötiş</button></p>';
   if(j.mine)body+='<p class="rs">✔ Natijangiz saqlangan.</p>';
   el.innerHTML=`<section class="card"><p><button id="cb">« Musobaqalar</button></p><h2>${esc(c.title)}</h2><p class="mut">${dt(c.plan)}${c.fileName?' · 📎 '+esc(c.fileName):''}</p>${body}
   <h3>Reyting</h3><table><tr><th>#</th><th>Ism</th><th>Söz/daq</th><th>Aniqlik</th><th>Ball</th></tr>${j.board.map((r,i)=>`<tr><td>${i<3?['🥇','🥈','🥉'][i]:i+1}</td><td>${esc(r.name)}</td><td>${r.wpm}</td><td>${r.acc}%</td><td><b>${r.score}</b></td></tr>`).join('')||'<tr><td colspan="5" class="mut">Hali natija yöq</td></tr>'}</table><p class="mut">Ball = tezlik × aniqlik</p></section>`;
-  $('#cb').onclick=()=>{CUR=null;clearTimeout(POLL);contView()};
+  $('#cb').onclick=()=>{CUR=null;clearTimeout(POLL);if(tk)clearInterval(tk);contView()};
   if($('#gb'))$('#gb').onclick=()=>login(()=>contOpen(id));
-  if($('#ap'))$('#ap').onclick=async e=>{e.target.disabled=true;try{await api('approve',{id});snd.fanfare();tick()}catch(x){alert(x.message)}};
-  if($('#ae'))$('#ae').onclick=async()=>{await api('endNow',{id});tick()};
-  // Boşlanişga sanoq va öyin
+  if($('#ap'))$('#ap').onclick=async e=>{const b=e.target;b.disabled=true;b.textContent='Tasdiqlanmoqda…';try{await api('approve',{id});snd.fanfare();await tick()}catch(x){alert(x.message);b.disabled=false;b.textContent='✅ Tasdiqlaş va boşlaş'}};
+  if($('#ae'))$('#ae').onclick=async e=>{e.target.disabled=true;try{await api('endNow',{id});await tick()}catch(x){alert(x.message);e.target.disabled=false}};
+  // O‘yin boshlanganida faqat tashkilotchidan boshqa qatnashchilar matnni o‘ynaydi.
   if(c.state=='running'&&U&&U.id!=c.by&&!j.mine&&!begun){
-   const go=()=>{begun=true;const rem=0;
-    playText(c.text,c.title,()=>{show('cont');contOpen(id)},{tm:rem,cb:async(r,x)=>{
+   const go=()=>{begun=true;playText(c.text,c.title,()=>{show('cont');contOpen(id)},{cb:async(r,x)=>{
      r.innerHTML='<h2>Yuborilmoqda…</h2>';
      try{const s=await api('submit',{id,n:x.n,acc:x.acc,err:x.errs,sec:x.el,tu:x.timeUp?1:0});snd.win(3);confetti();
       r.innerHTML=`<h2>Natijangiz: ${s.score} ball 🏁</h2><p class="rs">${s.wpm} söz/daq · ${s.acc}% aniqlik</p><p><button class="pri" id="go">Reytingni körişh</button></p>`}
      catch(e){r.innerHTML=`<h2>Yuborib bölmadi</h2><p>${esc(e.message)}</p><p><button class="pri" id="go">Orqaga</button></p>`}
      $('#go').onclick=exit}})};
    if(c.text&&now()>=c.startAt){go();return}
-   if(left0(c)>0){clearInterval(tk);tk=setInterval(()=>{const n=Math.ceil((c.startAt-now())/1000),e=$('#cd');if(e)e.textContent=n;if(n<=2&&n>0)snd.ding()},500)}
+   if(left0(c)>0){if(tk)clearInterval(tk);tk=setInterval(()=>{const n=Math.ceil((c.startAt-now())/1000),e=$('#cd');if(e)e.textContent=n;if(n<=2&&n>0)snd.ding()},500)}
   }
-  POLL=setTimeout(tick,c.state=='ended'?12000:(c.state=='running'&&c.startAt>now()?1000:4000));
+  POLL=setTimeout(tick,c.state=='ended'?15000:(c.state=='running'&&c.startAt>now()?1000:5000));
  };
- const left0=c=>c.startAt-now();
- tick();
+ const left0=c=>c.startAt-now();tick();
 }
 
 /* ---------- Foydalanuvçilar ---------- */
