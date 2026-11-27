@@ -159,6 +159,34 @@ td,th{padding:2px 12px;text-align:left}
 .lst{margin-left:6px;font-size:14px;color:var(--sund);font-weight:800}
 .gain{font:900 36px "Trebuchet MS",sans-serif;color:var(--sund);margin:4px 0}
 .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);max-width:92vw;background:#24384d;color:#fff;padding:10px 18px;border-radius:14px;z-index:60;font-size:15px;box-shadow:0 4px 0 rgba(0,0,0,.25)}
+/* Yuqori panel: bölimlar (Darslar / Sinov) */
+#nav{margin-left:auto;display:flex;gap:8px;align-self:center}
+#nav button{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.65);box-shadow:none;padding:6px 22px;font-size:17px}
+#nav button:hover:not(:disabled){background:rgba(255,255,255,.32);border-color:#fff}
+#nav button.on,#nav button.on:hover:not(:disabled){background:#fff;color:var(--skyd);border-color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.15)}
+
+/* Sinov bölimi */
+.tg{border-radius:22px;padding:18px 20px;margin:18px 0;color:#fff;box-shadow:0 6px 0 rgba(0,0,0,.15)}
+.tg h3{margin:0 0 12px;font-size:22px}
+.tg.u0{background:#2aa8e8}.tg.u1{background:#2fae5f}.tg.u2{background:#ff9433}
+.tcs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.tc{background:#fff;color:var(--ink);border-radius:16px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.tc>b{font-size:28px;line-height:1.2}
+.tbest{font-size:14px;color:var(--mut);min-height:1.4em}
+.tbest b{color:var(--skyd)}
+.tc button{padding:8px 14px;font-size:16px;width:100%}
+.tbar{flex:1;height:10px;background:#e3eef6;border-radius:6px;overflow:hidden}
+.tbar u{display:block;height:100%;width:0;text-decoration:none;background:linear-gradient(90deg,#6fd36f,#2fae5f)}
+#txt.tk{padding:6px 22px;font-size:40px;line-height:1.5;min-height:0}
+.tkr{border-bottom:2px solid var(--bd);padding:4px 0;white-space:pre}
+.tkr:last-child{border-bottom:0}
+.tkr:first-child{background:#f7fbfe}
+.tkr span{display:inline-block;min-width:.62em;text-align:center;border-radius:6px;padding:0 1px}
+#txt.tk .ok{background:#d6f3df}
+.tst{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:14px 0}
+.tst div{background:#f1faff;border-radius:16px;padding:10px 20px;min-width:120px;color:var(--mut);font-size:14px}
+.tst b{display:block;font-size:36px;line-height:1.2;color:var(--skyd)}
+
 /* Yengil rejim */
 html.lite{scroll-behavior:auto}
 .lite *{transition:none!important}

@@ -23,7 +23,8 @@ addEventListener('keydown',e=>{
   }else if(S.gm&&S.ending&&!S.done){
    if(now-S.endAt<350)return;
    finish();   // faqat natija oynasini körsatadi (yulduz va ballar körinadi); keyingisiga — yana ENTER
-  }else if(S.find&&S.found){const b=$('#fgo');if(b)b.click()}
+  }else if(S.find&&S.found){const b=$('#fgo');if(b)b.click()
+  }else if(S.tk&&!S.done&&!S.gm&&!S.find){typeKey('\u21b5',now)}   // 10 key: Enter — satr oxiridagi belgi (↵)
   return}
  if(e.key=='Backspace'){
   e.preventDefault();
@@ -36,20 +37,25 @@ addEventListener('keydown',e=>{
  if(e.repeat)return;
  const now=Date.now();
  if(S.gm){gameKey(c,now);return}
- click(c===' ');
+ typeKey(c,now);
+});
+
+// Bitta belgi yozildi (oddiy matn, topiş ekrani, sinov va 10 key uçun umumiy)
+function typeKey(c,now){
+ click(c===' '||c==='\u21b5');
  if(S.find){
   if(c===S.fc){S.found=true;S.bad=false;handsPress();snd.ding()}else{S.bad=true;snd.bad();shake($('#fc'))}
   paint();return}
- if(!S.t0){S.t0=now;S.tl=now;if(S.tm)S.iv=setInterval(()=>{paint();if(Date.now()-S.t0>=S.tm*1000)finish(true)},500)}
+ if(!S.t0){S.t0=now;S.tl=now;if(S.tm||CL.test)S.iv=setInterval(()=>{paint();if(S.tm&&Date.now()-S.t0>=S.tm*1000)finish(true)},500)}
  const tg=S.text[S.i],okk=c===tg;
  S.tot++;
- if(tg!==' '){const k=tg.toLowerCase(),v=P.keys[k]=P.keys[k]||{t:0,e:0};v.t++;if(!okk)v.e++}
- if(okk){S.tl=now;handsPress()}
+ if(tg!==' '&&!S.tk){const k=tg.toLowerCase(),v=P.keys[k]=P.keys[k]||{t:0,e:0};v.t++;if(!okk)v.e++}
+ if(okk){S.tl=now;if(!CL.test)handsPress()}
  else{S.err++;S.wr.add(S.i);snd.bad();shake($('#txt'))}
  S.i++;
  if(S.i>=S.text.length){finish();return}
  paint();
-});
+}
 
 // Öyin paytida tugma: öyin özi töğri/xatoni hal qiladi, bu yerda statistika yuritiladi.
 // (Öyinda tugma "tak" tovuşi yöq — öyinning özi musiqiy tovuş çiqaradi.)

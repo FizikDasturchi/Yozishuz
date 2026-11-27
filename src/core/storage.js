@@ -11,7 +11,8 @@ const newProgress=()=>({
  keys:{},          // harf -> {t: bosilgan, e: xato}
  st:{},            // dars -> har bir ekran uçun eng yaxşi yulduzlar [3,2,3,...]
  ch:0,ts:0,        // tezlik uçun: jami töğri belgilar va jami vaqt
- kt:0,ke:0         // aniqlik uçun: jami bosişlar va xatolar
+ kt:0,ke:0,        // aniqlik uçun: jami bosişlar va xatolar
+ tb:{}              // Sinov: har bir sinov uçun eng yaxşi natija {n: urinişlar, w: söz/daq, a: aniqlik, k: KPH}
 });
 let P;try{P=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 P=Object.assign(newProgress(),P||{});

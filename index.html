@@ -10,7 +10,8 @@
 <script src="src/design/design.js"></script>
 </head>
 <body>
-<header id="hd"><div class="in"><div class="logo">yozish<span>.uz</span></div><small>Yangi alifboda tez yozişni örganamiz</small></div></header>
+<header id="hd"><div class="in"><div class="logo">yozish<span>.uz</span></div><small>Yangi alifboda tez yozişni örganamiz</small>
+ <nav id="nav" aria-label="Bölimlar"><button data-v="home" class="on">Darslar</button><button data-v="tests">Sinov</button></nav></div></header>
 <main>
 <div id="home">
  <section class="card hero"><div id="tr"></div><div class="chips" id="st"></div></section>
@@ -25,6 +26,12 @@
  <button class="sm" id="cb">Konvertlaş</button> <button class="sm" id="wb">Sözlar röyxati</button> <button class="sm" id="sb">Bankka qöşiş</button> <span id="bn"></span>
  <textarea id="co"></textarea></details>
  <p><button class="sm" id="rs">Boşidan</button></p>
+</div>
+
+<div id="tests" hidden>
+ <section class="card"><h2>Sinov</h2><p class="mut" style="margin:0">Tezligingiz va aniqligingizni tekşiring. Matn har safar tasodifiy tanlanadi. Boşlaş uçun tugmani bosing, yozişni boşlaganingizda vaqt hisoblanadi.</p></section>
+ <div id="tl"></div>
+ <p class="mut" id="tn"></p>
 </div>
 
 <div id="pr" hidden>
@@ -50,12 +57,14 @@
 <script src="src/core/storage.js"></script>
 <script src="src/core/stats.js"></script>
 <script src="src/data/lessons.js"></script>
+<script src="src/data/texts.js"></script>
 <script src="src/audio/sounds.js"></script>
 <script src="src/ui/keyboard.js"></script>
 <script src="src/ui/hands.js"></script>
 <script src="src/ui/games.js"></script>
 <script src="src/ui/screens.js"></script>
 <script src="src/ui/input.js"></script>
+<script src="src/ui/tests.js"></script>
 <script src="src/tools/converter.js"></script>
 <script src="src/app.js"></script>
 </body>

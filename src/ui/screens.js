@@ -9,7 +9,9 @@ const sh=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
 const weak=()=>Object.entries(P.keys).filter(([c,v])=>v.t>=5&&v.e/v.t>.05).sort((a,b)=>b[1].e/b[1].t-a[1].e/a[1].t).slice(0,3).map(x=>x[0]);
 
 // Ekranlarni almaştiriş: bir paytda faqat bittasi körinadi
-function show(v){$('#hd').hidden=v!='home';$('#home').hidden=v!='home';$('#pr').hidden=v!='pr';window.scrollTo(0,0)}
+function show(v){$('#hd').hidden=v!='home'&&v!='tests';$('#home').hidden=v!='home';$('#tests').hidden=v!='tests';$('#pr').hidden=v!='pr';
+ document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',(b.dataset.v=='tests')==(v=='tests')));
+ window.scrollTo(0,0)}
 
 /* ---------- Bosh sahifa ---------- */
 function tree(){
@@ -43,6 +45,7 @@ function home(){
 // Matn: har bir söz (iloji bö'lsa) faqat bir marta; bank kam bölsa — ençi bilan 2 marta
 function gen(){
  const s=CL.sc[CI],t=s.t,K=CL.k||[];
+ if(t=='T')return s.mk();   // Sinov: matn tests.js da tuziladi
  if(t=='d')return Array.from({length:8},(_,i)=>i&&s.pv.length&&Math.random()<.35?R(s.pv):s.c).join('');
  if(t=='g'){const pool=[...K,...K,...CL.lk.filter(c=>!K.includes(c)).slice(-4)];
   // uzatiş maşqi: yangi harf + shu barmoq bosadigan boşqa harf (masalan: faf)
@@ -58,12 +61,12 @@ function gen(){
  const u=pickN(p,120);
  return u.concat(sh(u)).join(' ');
 }
-function openPr(){jankStart();ac();if(document.activeElement)document.activeElement.blur();show('pr');start();handsStart()}
+function openPr(){jankStart();ac();if(document.activeElement)document.activeElement.blur();show('pr');start();if(!CL.test)handsStart()}
 function begin(i){CL=ALL[i];const d=dn(CL);CI=d>=CL.sc.length?0:d;openPr()}
 function problem(){const l=[...ALL].reverse().find(x=>dn(x)>0)||ALL[0];
  CL={id:'pk',pk:1,t:'Problem harflar',lk:l.lk,cw:l.cw,sc:[{t:'p'}]};CI=0;openPr()}
 function gStop(){if(S.game&&S.game.stop)S.game.stop()}
-function exit(){clearInterval(S.iv);gStop();jankStop();$('#hsv').style.display='';home()}
+function exit(){clearInterval(S.iv);gStop();jankStop();$('#hsv').style.display='';if(CL&&CL.test)tests();else home()}
 // Sekin qurilmani aniqlaş: maşq paytida kadrlar uzoq (>60 ms) bölsa, yengil rejim özi yoqiladi
 let JK={raf:0,last:0,bad:[],on:false};
 function jankStart(){
@@ -81,16 +84,19 @@ function toast(t){const d=document.createElement('div');d.className='toast';d.te
 function start(){
  clearInterval(S.iv);gStop();const s=CL.sc[CI];
  // t0 - birinçi bosiş vaqti, tl - öxirgi töğri bosiş vaqti (tezlik hisobi uçun)
- S={text:'',i:0,wr:new Set(),err:0,tot:0,t0:0,tl:0,done:false,bad:false,tm:s.t=='p'?120:s.t=='a'?60:0,find:s.t=='f',fc:s.c,found:false,gm:s.t=='G',game:null,lost:false,ending:0,endAt:0,resAt:0,tg:null,lvh:''};
+ S={text:'',i:0,wr:new Set(),err:0,tot:0,t0:0,tl:0,done:false,bad:false,tm:s.tm!=null?s.tm:s.t=='p'?120:s.t=='a'?60:0,tk:!!s.tk,find:s.t=='f',fc:s.c,found:false,gm:s.t=='G',game:null,lost:false,ending:0,endAt:0,resAt:0,tg:null,lvh:''};
  if(!S.find&&!S.gm)S.text=gen();
  $('#res').hidden=true;$('#res').innerHTML='';$('#play').hidden=false;
  $('#gm').hidden=!S.gm;$('#gm').innerHTML='';
- $('#hsv').style.display=(S.gm||LITE)?'none':'';   // öyinda (va yengil rejimda) qöllar çizilmaydi — yengil va silliq işlaydi
+ $('#hsv').style.display=(S.gm||LITE||CL.test)?'none':'';
+ $('#kbs').hidden=!!CL.test;$('#hint').innerHTML='';   // sinovda klaviatura va qöllar körsatilmaydi
+ $('#ex').textContent=CL.test?'« Sinov':'« Darslar';
+ $('#txt').className=S.tk?'tk':'';   // öyinda (va yengil rejimda) qöllar çizilmaydi — yengil va silliq işlaydi
  $('#pt').textContent=CL.t;
  if(S.gm){
   S.game=GAMES[s.g](s.kn);$('#pt').textContent=CL.t+' · '+S.game.title;
  }
- $('#sg').innerHTML=CL.sc.map((_,j)=>`<i class="${j<dn(CL)?'f':j==CI?'c':''}"></i>`).join('');
+ $('#sg').innerHTML=CL.test?'<div class="tbar"><u id="tbf"></u></div>':CL.sc.map((_,j)=>`<i class="${j<dn(CL)?'f':j==CI?'c':''}"></i>`).join('');
  paint();
 }
 function paint(){
@@ -110,14 +116,15 @@ function paint(){
  }else{
   $('#fc').innerHTML='';
   if(s.t=='d')$('#txt').innerHTML='<div class="bx">'+[...S.text].map((ch,j)=>`<span class="${j<S.i?(S.wr.has(j)?'bad':'ok'):j==S.i?'cur':''}">${ch}</span>`).join('')+'</div>';
+  else if(S.tk)paintTen();
   else paintTxt();
   const left=S.t0?Math.max(0,S.tm-(Date.now()-S.t0)/1000):S.tm;
-  const lh=`<span>Tezlik: ${liveWpm(S)}</span><span>Aniqlik: ${S.tot?accOf(S):100}%</span>`+(S.tm?`<span>⏱ ${fmt(left)}</span>`:'')+`<span>★ ${starsTot()}</span><span>Ball: ${P.pts}</span>`;
+  const lh=CL.test?testLive():`<span>Tezlik: ${liveWpm(S)}</span><span>Aniqlik: ${S.tot?accOf(S):100}%</span>`+(S.tm?`<span>⏱ ${fmt(left)}</span>`:'')+`<span>★ ${starsTot()}</span><span>Ball: ${P.pts}</span>`;
   if(lh!==S.lvh){S.lvh=lh;$('#lv').innerHTML=lh}
  }
  const tg=S.gm?(S.game?S.game.target():''):S.find?(S.found?'':S.fc):S.text[S.i];
  // Klaviatura va qöllar faqat kerakli belgi özgarganda yangilanadi (har bosişda butun klaviatura qayta qurilmaydi)
- if(tg!==S.tg||S.find){
+ if(!CL.test&&(tg!==S.tg||S.find)){
   S.tg=tg;
   kbSet(tg);
   if(!S.gm)handsSet(tg);
@@ -129,7 +136,8 @@ function paint(){
 
 // Matn: faqat özgargan belgilar yangilanadi (har bosişda 160 ta element qayta çizilmaydi)
 function buildTxt(){
- const a=S.wa,seg=S.text.slice(a,a+160),fr=document.createDocumentFragment();S.sp=[];
+ const a=S.wa,fr=document.createDocumentFragment();let seg=S.text.slice(a,a+160);S.sp=[];
+ if(CL.test&&a+160<S.text.length){const k=seg.lastIndexOf(' ');if(k>110)seg=seg.slice(0,k+1)}   // sinovda oxirgi yarim söz körinmasin
  for(let j=0;j<seg.length;j++){const e=document.createElement('span');e.textContent=seg[j];fr.appendChild(e);S.sp.push(e)}
  const box=$('#txt');box.textContent='';box.appendChild(fr);S.pi=a;
 }
@@ -150,6 +158,7 @@ function adv(){
 // Qoida: yutsa (yoki talabni bajarsa) — ENTER keyingisiga; yutqazsa (talabni bajarmasa) — ENTER qaytadan.
 function finish(timeUp){
  if(S.done)return;S.done=true;clearInterval(S.iv);
+ if(CL.test){finishTest(timeUp);return}   // Sinov natijasi — tests.js
  const s=CL.sc[CI],isG=s.t=='G',wpm=wpmOf(S,timeUp),acc=accOf(S);
  const okAcc=isG||acc>=PASS,ok=okAcc&&S.i>0&&!S.lost;
  gStop();
