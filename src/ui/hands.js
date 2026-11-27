@@ -136,5 +136,5 @@ function handsStep(){
  }
  return mv;
 }
-function handsLoop(){HR=0;if($('#pr').hidden||$('#hsv').style.display=='none')return;if(handsStep())HR=requestAnimationFrame(handsLoop)}
-function handsStart(){if(!HR&&$('#hsv').style.display!='none')HR=requestAnimationFrame(handsLoop)}
+function handsLoop(){HR=0;if(LITE||$('#pr').hidden||$('#hsv').style.display=='none')return;if(handsStep())HR=requestAnimationFrame(handsLoop)}
+function handsStart(){if(!HR&&!LITE&&$('#hsv').style.display!='none')HR=requestAnimationFrame(handsLoop)}

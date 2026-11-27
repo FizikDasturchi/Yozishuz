@@ -9,7 +9,9 @@
    • snd.jump/land/word/pop/miss/boost/fuel/ding — öyin tovuşlari
    Provides: SND, ac, tone, click, clickUp, snd
    ============================================================ */
-let AC,OUT,NB,SND=true;
+let AC,OUT,NB,SND=true,VC=0;
+// Bir paytda çalinayotgan tovuşlar soni çegaralanadi — zaif qurilmada tovuş qotişi bölmasligi uçun
+const vo=n=>{VC++;n.onended=()=>{VC--}};
 function ac(){
  try{
   if(!AC){
@@ -26,21 +28,21 @@ function ac(){
 }
 // Oddiy nota: yumşoq boşlanişi (8 ms) va tabiiy so'nişi
 function tone(f,d,type,v,at,f2){
- if(!SND)return;const a=ac();if(!a)return;
+ if(!SND||VC>(LITE?10:22))return;const a=ac();if(!a)return;
  const t=a.currentTime+(at||0),o=a.createOscillator(),g=a.createGain();
  o.type=type||'sine';o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v||.2,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+d);
- o.connect(g);g.connect(OUT);o.start(t);o.stop(t+d+.03);
+ o.connect(g);g.connect(OUT);vo(o);o.start(t);o.stop(t+d+.03);
 }
 // Yumşoq "piano/marimba" notasi: uç tomon sekin yopiladigan filtr — o'tkir emas, iliq
 function note(f,d,v,at){
- if(!SND)return;const a=ac();if(!a)return;
+ if(!SND||VC>(LITE?8:18))return;const a=ac();if(!a)return;
  const t=a.currentTime+(at||0),g=a.createGain(),lp=a.createBiquadFilter();
  lp.type='lowpass';lp.frequency.setValueAtTime(Math.min(9000,f*7),t);lp.frequency.exponentialRampToValueAtTime(Math.max(700,f*1.5),t+d);
  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.005);g.gain.exponentialRampToValueAtTime(.0001,t+d);
  [[f,'triangle',1],[f*2,'sine',.32],[f*3.01,'sine',.1]].forEach(([fr,ty,k])=>{
   const o=a.createOscillator(),og=a.createGain();o.type=ty;o.frequency.value=fr;og.gain.value=k;
-  o.connect(og);og.connect(lp);o.start(t);o.stop(t+d+.05);
+  o.connect(og);og.connect(lp);if(k==1)vo(o);o.start(t);o.stop(t+d+.05);
  });
  lp.connect(g);g.connect(OUT);
 }
@@ -48,11 +50,11 @@ function note(f,d,v,at){
 function bell(f,v,at){tone(f,.9,'sine',v,at);tone(f*2.01,.55,'sine',v*.35,at);tone(f*4.2,.22,'sine',v*.1,at)}
 // Qisqa shovqin urilişi (past chastotali, yumşoq)
 function nz(f,q,d,v,at,rate,type){
- if(!SND)return;const a=ac();if(!a)return;const t=a.currentTime+(at||0);
+ if(!SND||VC>(LITE?10:22))return;const a=ac();if(!a)return;const t=a.currentTime+(at||0);
  const s=a.createBufferSource();s.buffer=NB;s.playbackRate.value=rate||1;
  const fl=a.createBiquadFilter();fl.type=type||'bandpass';fl.frequency.value=f;fl.Q.value=q;
  const g=a.createGain();g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);
- s.connect(fl);fl.connect(g);g.connect(OUT);s.start(t,Math.random()*.05);s.stop(t+d+.02);
+ s.connect(fl);fl.connect(g);g.connect(OUT);vo(s);s.start(t,Math.random()*.05);s.stop(t+d+.02);
 }
 // Shovqinning chastotali "süpürişi" (whoosh)
 function whoosh(f1,f2,d,v,at){
@@ -64,7 +66,7 @@ function whoosh(f1,f2,d,v,at){
  s.connect(fl);fl.connect(g);g.connect(OUT);s.start(t);s.stop(t+d+.03);
 }
 // Yaltirash: bir necha yuqori "tink" (eng ko'pi bilan 8 ta — yengil)
-function sparkle(at,n){for(let i=0;i<n;i++)tone(2200+Math.random()*2600,.16,'sine',.05,at+i*.055)}
+function sparkle(at,n){if(LITE)n=Math.min(n,3);for(let i=0;i<n;i++)tone(2200+Math.random()*2600,.16,'sine',.05,at+i*.055)}
 
 // Tugma bosilganda: yumşoq "tak" + past "tok"
 function click(big){
@@ -75,7 +77,7 @@ function click(big){
 }
 // Tugma qöyvorilganda: juda yengil "tik"
 function clickUp(){
- if(!SND)return;const a=ac();if(!a)return;
+ if(!SND||LITE)return;const a=ac();if(!a)return;
  nz(2600,1,.012,.14,0,1.1);
 }
 

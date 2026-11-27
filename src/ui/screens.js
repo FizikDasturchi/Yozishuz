@@ -24,7 +24,7 @@ function tree(){
 function head(){
  const stg=stage(),nx=TH[stg],dd=P.day[today()]||0,aw=avgWpm(),aa=avgAcc();
  $('#tr').innerHTML=tree()+`<div class="tt"><b>Nihol (${stg}/5)</b><br>Ball: ${P.pts}<br>${nx!=null?'Keyingi bosqiçgaça: '+(nx-P.pts):'Eng yuqori bosqiç!'}</div>`;
- $('#st').innerHTML=`<div class="chip"><b>${aw==null?'--':aw}</b>söz/daq (örtaça)</div><div class="chip"><b>${aa==null?'--':aa+'%'}</b>aniqlik (örtaça)</div>`
+ $('#st').innerHTML=`<div class="chip"><b>★ ${starsTot()}</b>yulduz</div><div class="chip"><b>${aw==null?'--':aw}</b>söz/daq (örtaça)</div><div class="chip"><b>${aa==null?'--':aa+'%'}</b>aniqlik (örtaça)</div>`
   +`<div class="chip wide">Kunlik maqsad: <b style="display:inline;font-size:18px">${fmt(dd)}</b> / ${fmt(GOAL)}<div class="pb"><i style="width:${Math.min(100,dd/GOAL*100)}%"></i></div>Keyingi ekranga ötiş uçun: aniqlik kamida <b style="display:inline;font-size:15px">${PASS}%</b>, tezlik kamida <b style="display:inline;font-size:15px">${MIN_WPM}</b> söz/daq</div>`;
 }
 function home(){
@@ -35,7 +35,7 @@ function home(){
  let n=0;
  $('#units').innerHTML=UN.map((u,ui)=>`<div class="uh u${ui%5}">${u.t}</div>`+u.ls.map(l=>{
   const i=n++,o=opened(i),d=dn(l);
-  return `<div class="ls ${i==cur?'cur':''} ${o?'':'lock'}" id="L${i}"><div class="lt"><span class="no">${i+1}</span>${l.t}${l.p?' · 2:00':l.a?' · 1:00':''}<button class="${i==cur?'pri':''}" data-i="${i}" ${o?'':'disabled'}>${!o?'🔒':d==0?'Boşlaş':d<l.sc.length?'Davom etiş':'Qayta'}</button></div><div class="sg">${l.sc.map((_,j)=>`<i class="${j<d?'f':''}"></i>`).join('')}</div></div>`}).join('')).join('');
+  return `<div class="ls ${i==cur?'cur':''} ${o?'':'lock'}" id="L${i}"><div class="lt"><span class="no">${i+1}</span>${l.t}${l.p?' · 2:00':l.a?' · 1:00':''}${starsOfLesson(l)?`<span class="lst">★ ${starsOfLesson(l)}</span>`:''}<button class="${i==cur?'pri':''}" data-i="${i}" ${o?'':'disabled'}>${!o?'🔒':d==0?'Boşlaş':d<l.sc.length?'Davom etiş':'Qayta'}</button></div><div class="sg">${l.sc.map((_,j)=>`<i class="${j<d?'f':''}"></i>`).join('')}</div></div>`}).join('')).join('');
  const e=$('#L'+cur);if(e&&cur>0)e.scrollIntoView({block:'center'});
 }
 
@@ -58,13 +58,26 @@ function gen(){
  const u=pickN(p,120);
  return u.concat(sh(u)).join(' ');
 }
-function openPr(){ac();if(document.activeElement)document.activeElement.blur();show('pr');start();handsStart()}
+function openPr(){jankStart();ac();if(document.activeElement)document.activeElement.blur();show('pr');start();handsStart()}
 function begin(i){CL=ALL[i];const d=dn(CL);CI=d>=CL.sc.length?0:d;openPr()}
 function problem(){const l=[...ALL].reverse().find(x=>dn(x)>0)||ALL[0];
  CL={id:'pk',pk:1,t:'Problem harflar',lk:l.lk,cw:l.cw,sc:[{t:'p'}]};CI=0;openPr()}
 function gStop(){if(S.game&&S.game.stop)S.game.stop()}
-function exit(){clearInterval(S.iv);gStop();$('#hsv').style.display='';home()}
-let GF=0;
+function exit(){clearInterval(S.iv);gStop();jankStop();$('#hsv').style.display='';home()}
+// Sekin qurilmani aniqlaş: maşq paytida kadrlar uzoq (>60 ms) bölsa, yengil rejim özi yoqiladi
+let JK={raf:0,last:0,bad:[],on:false};
+function jankStart(){
+ if(JK.on)return;JK.on=true;JK.last=0;JK.bad=[];
+ const f=ts=>{
+  if(!JK.on)return;JK.raf=requestAnimationFrame(f);
+  if(JK.last){const d=ts-JK.last;if(d>60&&d<1500)JK.bad.push(ts)}
+  JK.last=ts;while(JK.bad.length&&ts-JK.bad[0]>5000)JK.bad.shift();
+  if(!LITE&&JK.bad.length>=10){setLite(true,true);toast('Qurilmangiz sekinroq — yengil rejim yoqildi. Xohlasangiz yuqoridagi "Yengil" tugmasi bilan öçirasiz.')}
+ };
+ JK.raf=requestAnimationFrame(f);
+}
+function jankStop(){JK.on=false;cancelAnimationFrame(JK.raf)}
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),6000)}
 function start(){
  clearInterval(S.iv);gStop();const s=CL.sc[CI];
  // t0 - birinçi bosiş vaqti, tl - öxirgi töğri bosiş vaqti (tezlik hisobi uçun)
@@ -72,13 +85,10 @@ function start(){
  if(!S.find&&!S.gm)S.text=gen();
  $('#res').hidden=true;$('#res').innerHTML='';$('#play').hidden=false;
  $('#gm').hidden=!S.gm;$('#gm').innerHTML='';
- $('#hsv').style.display=S.gm?'none':'';   // öyinda qöllar çizilmaydi — yengil va silliq işlaydi
+ $('#hsv').style.display=(S.gm||LITE)?'none':'';   // öyinda (va yengil rejimda) qöllar çizilmaydi — yengil va silliq işlaydi
  $('#pt').textContent=CL.t;
  if(S.gm){
-  let k=s.g;
-  // Söz öyini uçun örganilgan harflardan söz yetarli bölmasa — harf öyiniga almaştiriladi
-  if(['robot','race','rocket'].includes(k)&&gPool(s.kn).length<8)k=['tiles','climb'][GF++%2];
-  S.game=GAMES[k](s.kn);$('#pt').textContent=CL.t+' · '+S.game.title;
+  S.game=GAMES[s.g](s.kn);$('#pt').textContent=CL.t+' · '+S.game.title;
  }
  $('#sg').innerHTML=CL.sc.map((_,j)=>`<i class="${j<dn(CL)?'f':j==CI?'c':''}"></i>`).join('');
  paint();
@@ -89,7 +99,7 @@ function paint(){
  $('#fc').hidden=!S.find;$('#txt').hidden=S.find||S.gm;$('#lv').hidden=S.find;
  if(S.gm){
   $('#fc').innerHTML='';
-  const h=`<span>Aniqlik: ${S.tot?accOf(S):100}%</span>`+(S.game?`<span>${S.game.status()}</span>`:'');
+  const h=`<span>Aniqlik: ${S.tot?accOf(S):100}%</span>`+(S.game?`<span>${S.game.status()}</span>`:'')+`<span>★ ${starsTot()}</span><span>Ball: ${P.pts}</span>`;
   if(h!==S.lvh){S.lvh=h;$('#lv').innerHTML=h}
  }else if(S.find){
   const c=S.fc,fg=fing(codeOf[c.toLowerCase()]),up=c!==c.toLowerCase();
@@ -100,21 +110,35 @@ function paint(){
  }else{
   $('#fc').innerHTML='';
   if(s.t=='d')$('#txt').innerHTML='<div class="bx">'+[...S.text].map((ch,j)=>`<span class="${j<S.i?'ok':j==S.i?(S.bad?'cur bad':'cur'):''}">${ch}</span>`).join('')+'</div>';
-  else{const a=Math.max(0,S.i-25),seg=S.text.slice(a,a+160);
-   $('#txt').innerHTML=[...seg].map((ch,j)=>{const x=a+j;return `<span class="${x<S.i?'ok':x==S.i?(S.bad?'cur bad':'cur'):''}">${ch}</span>`}).join('')}
+  else paintTxt();
   const left=S.t0?Math.max(0,S.tm-(Date.now()-S.t0)/1000):S.tm;
-  $('#lv').innerHTML=`<span>Tezlik: ${liveWpm(S)}</span><span>Aniqlik: ${S.tot?accOf(S):100}%</span>`+(S.tm?`<span>⏱ ${fmt(left)}</span>`:'');
+  const lh=`<span>Tezlik: ${liveWpm(S)}</span><span>Aniqlik: ${S.tot?accOf(S):100}%</span>`+(S.tm?`<span>⏱ ${fmt(left)}</span>`:'')+`<span>★ ${starsTot()}</span><span>Ball: ${P.pts}</span>`;
+  if(lh!==S.lvh){S.lvh=lh;$('#lv').innerHTML=lh}
  }
  const tg=S.gm?(S.game?S.game.target():''):S.find?(S.found?'':S.fc):S.text[S.i];
  // Klaviatura va qöllar faqat kerakli belgi özgarganda yangilanadi (har bosişda butun klaviatura qayta qurilmaydi)
  if(tg!==S.tg||S.find){
   S.tg=tg;
-  $('#kb').innerHTML=kbHTML(tg);
+  kbSet(tg);
   if(!S.gm)handsSet(tg);
   let h='';
   if(tg){if(tg==' ')h='Probel — bosh barmoq bilan';else{const c=codeOf[tg.toLowerCase()];h=`<b>${tg}</b> — `+(c?`<b>${cap(c)}</b> tugmasi`:'belgi')+(c&&tg!==tg.toLowerCase()?' + Shift':'')+(c?` · <span class="mut">${fing(c)}</span>`:'')}}
   $('#hint').innerHTML=h;
  }
+}
+
+// Matn: faqat özgargan belgilar yangilanadi (har bosişda 160 ta element qayta çizilmaydi)
+function buildTxt(){
+ const a=S.wa,seg=S.text.slice(a,a+160),fr=document.createDocumentFragment();S.sp=[];
+ for(let j=0;j<seg.length;j++){const e=document.createElement('span');e.textContent=seg[j];fr.appendChild(e);S.sp.push(e)}
+ const box=$('#txt');box.textContent='';box.appendChild(fr);S.pi=a;
+}
+function paintTxt(){
+ if(S.wa==null||!S.sp||S.i<S.wa||S.i-S.wa>=70){S.wa=Math.max(0,S.i-12);buildTxt()}
+ const a=S.wa;
+ for(let x=S.pi;x<S.i;x++){const e=S.sp[x-a];if(e)e.className='ok'}
+ const c=S.sp[S.i-a];if(c)c.className=S.bad?'cur bad':'cur';
+ S.pi=S.i;
 }
 
 // Topiş ekranidan keyingisiga
@@ -130,29 +154,30 @@ function finish(timeUp){
  const s=CL.sc[CI],isG=s.t=='G',wpm=wpmOf(S,timeUp),acc=accOf(S);
  const okAcc=isG||acc>=PASS,okWpm=isG||wpm>=MIN_WPM,ok=okAcc&&okWpm&&S.i>0&&!S.lost;
  gStop();
- const stars=!ok?0:acc>=96?3:acc>=90?2:1;
+ const stars=!ok?0:starsOf(acc);
  addStats(S,timeUp);
  let gain=0,msg='';
  if(ok){const first=!CL.pk&&CI==dn(CL);
   gain=first?(s.t=='p'?30:s.t=='a'?50:10+stars*3):2;
   if(first){P.done[CL.id]=CI+1;if(full(CL))msg='<p class="rs"><b>Dars tugadi! 🎊</b></p>'}
-  P.pts=Math.min(MAXP,P.pts+gain)}
+  P.pts=Math.min(MAXP,P.pts+gain);
+  if(!CL.pk){const a=P.st[CL.id]=P.st[CL.id]||[];a[CI]=Math.max(a[CI]||0,stars)}}
  save();
  handsSet('');
  if(ok){snd.win(stars);confetti()}else if(!isG)snd.lose();
  const d=dn(CL),stg=stage(),lo=TH[stg-1],hi=TH[stg],pct=hi?Math.round(100*(P.pts-lo)/(hi-lo)):100;
  const last=CI+1>=CL.sc.length;
  $('#play').hidden=true;
- const r=$('#res');r.hidden=false;S.resAt=Date.now();
+ const r=$('#res');r.hidden=false;S.resAt=Date.now();window.scrollTo(0,0);
  const title=!ok?(isG?'Yutqazdingiz 💪':'Qayta urinib köring 💪'):stars==3?R(['Ajoyib! 🌟','Zör! 🌟','Barakalla! 🌟']):stars==2?'Yaxşi! 👏':'Ötdingiz! 👍';
  const need=[];if(!okAcc)need.push(`aniqlik kamida ${PASS}% bölişi kerak`);if(!okWpm)need.push(`tezlik kamida ${MIN_WPM} söz/daq bölişi kerak`);
  const line=isG
-  ?`Aniqligingiz <b>${acc}%</b>${ok?` · <b>+${gain} ball</b>`:'<br><span class="mut">Hiç qiynalmang — yana bir urinib körasiz</span>'}`
-  :`Tezligingiz <b>${wpm}</b> söz/daq, aniqligi <b>${acc}%</b>${ok?` · <b>+${gain} ball</b>`:`<br><span class="mut">Davom etiş uçun ${need.join(', ')}</span>`}`;
+  ?`Aniqligingiz <b>${acc}%</b>${ok?``:'<br><span class="mut">Hiç qiynalmang — yana bir urinib körasiz</span>'}`
+  :`Tezligingiz <b>${wpm}</b> söz/daq, aniqligi <b>${acc}%</b>${ok?``:`<br><span class="mut">Davom etiş uçun ${need.join(', ')}</span>`}`;
  const goLbl=ok?(last?'Tugatiş':'Davom etiş'):'Qayta urinib köriş';
- r.innerHTML=`<div class="stars">${[0,1,2].map(i=>`<span class="${i<stars?'on':''}" style="animation-delay:${.15+i*.85}s">${i<stars?'★':'☆'}</span>`).join('')}</div>
+ r.innerHTML=`<div class="stars">${[0,1,2].map(i=>`<span class="${i<stars?'on':''}" style="animation-delay:${.1+i*.3}s">${i<stars?'★':'☆'}</span>`).join('')}</div>
  <h2>${title}</h2>
- <p class="rs">${line}</p>${msg}
+ ${ok?`<div class="gain">+${gain} ball</div>`:''}<p class="rs">${line}</p>${msg}<p class="rs">★ ${starsTot()} yulduz · ${P.pts} ball</p>
  <div class="pg"><b>Nihol (${stg}/5)</b> · ${P.pts} ball<div class="pb"><i style="width:${pct}%"></i></div>
  <span class="mut">Kunlik maqsad: ${fmt(P.day[today()]||0)} / ${fmt(GOAL)} · Dars jarayoni: ${d}/${CL.sc.length}</span>
  <div class="sn">${CL.sc.map((_,j)=>`<i class="${j<d?'f':j==CI?'c':''}">${j+1}</i>`).join('')}</div></div>

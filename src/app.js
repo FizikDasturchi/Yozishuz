@@ -10,5 +10,14 @@ $('#rs').onclick=e=>{const b=e.target;
  if(!b.dataset.s){b.dataset.s=1;b.textContent='Aniqmi? Yana bosing';setTimeout(()=>{delete b.dataset.s;b.textContent='Boşidan'},3000);return}
  resetProgress();delete b.dataset.s;b.textContent='Boşidan';home();
 };
+function setLite(v,remember){
+ LITE=!!v;document.documentElement.classList.toggle('lite',LITE);
+ try{if(remember)localStorage.setItem('yozish.lite',LITE?'1':'0')}catch(e){}
+ const b=$('#lt');if(b)b.textContent='Yengil '+(LITE?'✓':'✗');
+ const h=$('#hsv');if(h&&!$('#pr').hidden)h.style.display=(LITE||(S&&S.gm))?'none':'';
+ if(!LITE&&typeof handsStart==='function')handsStart();
+}
+$('#lt').onclick=()=>setLite(!LITE,true);
+setLite(LITE,false);
 handsBuild();
 home();

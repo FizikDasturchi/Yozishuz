@@ -43,3 +43,14 @@ const FG=[
 ];
 const fobj=c=>FG.find(x=>x[2].split(' ').includes(c));
 const fing=c=>{const f=fobj(c);return f?f[1]:''};
+
+// Yengil rejim: zaif qurilmalarda qotmaslik uçun (qöllar va yorqin effektlar öçadi, canvas yengillaşadi).
+// '1' — yoqilgan, '0' — öçirilgan (foydalanuvçi tanlagan), yöq bölsa — qurilmaga qarab avtomatik.
+let LITE=(()=>{
+ try{const v=localStorage.getItem('yozish.lite');if(v==='1')return true;if(v==='0')return false}catch(e){}
+ try{const n=navigator;if((n.hardwareConcurrency&&n.hardwareConcurrency<=2)||(n.deviceMemory&&n.deviceMemory<=2))return true;
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return true}catch(e){}
+ return false;
+})();
+// Yulduz: aniqlikka qarab (96%+ — 3, 90%+ — 2, öşandan past — 1)
+const starsOf=acc=>acc>=96?3:acc>=90?2:1;

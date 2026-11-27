@@ -18,11 +18,11 @@ addEventListener('keydown',e=>{
   e.preventDefault();if(e.repeat)return;
   const now=Date.now();
   if(!$('#res').hidden){
-   if(now-S.resAt<300)return;   // tasodifiy qo'şa bosişdan saqlaş
+   if(now-S.resAt<800)return;   // yulduz va ballarni körişga ulgurişi uçun / tasodifiy qo'şa bosişdan saqlaş
    const b=$('#go');if(b&&!b.disabled)b.click();
   }else if(S.gm&&S.ending&&!S.done){
    if(now-S.endAt<350)return;
-   finish();const b=$('#go');if(b)b.click();   // natijani yozib, darhol keyingisiga / qaytadan
+   finish();   // faqat natija oynasini körsatadi (yulduz va ballar körinadi); keyingisiga — yana ENTER
   }else if(S.find&&S.found){const b=$('#fgo');if(b)b.click()}
   return}
  if(S.done||(S.find&&S.found))return;

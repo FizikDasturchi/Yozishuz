@@ -53,15 +53,48 @@ zor xona vaqt uzum yozuv xalq xizmat zavq daraxt kuz qiz xazina vazifa zamin boz
 çoy çiroy çiroq çaman çaqmoq çiziq çopon çarx çeçak çöl çorşanba çin çelak çamadon çaqaloq çiqiş çaşma çoyxona çiroyli çapan çizma çigit çodir çumçuq çanqoq çavandoz çuqur çegara
 maʼno eʼlon maʼlum taʼlim maʼqul eʼtibor maʼnaviyat taʼsir maʼdan taʼm daʼvo raʼno maʼrifat meʼmor şeʼr taʼmir maʼruza jamʼiyat
 `.split(/\s+/).filter(Boolean);
+// Qöşimcha söz banki (kengaytirilgan): mavzular bö'yiça — hayvon, meva, oila, maktab, uy, rang, fasl...
+const WORDS2=`
+sal kal ala aka dada daf kaf lak sajda alaf falsafa sahifa jiddi silsila alif dalil tahlil taklif tafsir taşkil
+tarif taraf harf kerak erk fikr sehr jar jarroh orol sahar hatto teri ter tur tor toş tiş tuş asos usta teşik
+eşit eşitdi atlas adras idrok odat aslida hali hol ahli dalolat adolat hudud tirsak ketiş keliş işlaş iştirok
+teşa tilak doira dastur dostlik olti sutka sirka katta tilla turiş gulli sodda sirli turli asli işlar gul boğ
+toğ daryo dengiz köl yer osmon yulduz quyoş bulut yomğir qor şamol tuman havo olov suv muz qum tuproq ötloq
+örmon vodiy çöl dala soy buloq şarşara sayyora koinot raketa kosmos oydin daraxt barg şox ildiz gilos olma anor
+uzum nok behi şaftoli örik olxöri anjir qovun tarvuz limon banan sabzi piyoz kartoşka pomidor bodring sarimsoq
+qalampir karam turp lavlagi meva mevalar sabzavot eçki qöy sigir tuya eşak muşuk quyon tulki böri ayiq şer fil
+maymun zebra burgut çumçuq kaptar bulbul tovuq xöroz ördak baliq kit delfin toşbaqa qurbaqa ilon çumoli asalari
+kapalak ari paşşa hayvon quş uya ota ona uka opa singil buva buvi bobo momo amaki toğa xola amma qiz bola
+farzand döst qöşni öqituvçi öquvçi talaba şifokor haydovçi quruvçi dehqon oşpaz yozuvçi şoir rassom sportçi
+uçuvçi kitob daftar qalam ruçka maktab sinf dars imtihon baho savol javob söz gap matn şeʼr ertak hikoya rasm
+xarita doska stol stul parta sumka luğat alifbo hisob raqam son bilim ilm aql ğoya masala misol maşq yozuv öqiş
+yoziş kutubxona xona eşik deraza devor tom hovli oşxona divan gilam körpa yostiq çiroq soat oyna kalit qulf
+idiş kosa piyola qoşiq piçoq çoynak non şörva somsa manti palov lağmon sut qatiq qaymoq pişloq tuxum göşt asal
+şakar tuz yoğ çoy şarbat şirinlik tort bugun ertaga keça ertalab kun tun tong keç hafta yil fasl bahor yoz kuz
+qiş daqiqa soniya bayram navröz duşanba seşanba çorşanba payşanba juma şanba yakşanba qizil sariq yaşil kök
+qora puşti binafşa kiçik uzun qisqa baland past keng yangi eski yaxşi çiroyli issiq sovuq şirin nordon aççiq
+yengil oğir tez sekin toza mazali kuçli dono mard jasur mehribon aqlli sodiq halol oçiq yopiq töla böş quruq
+qalin yupqa yumşoq qattiq tiniq sokin xursand baxtli soğlom yozdi öqidi kuldi işladi öynadi sakradi uçdi
+yugurdi suzdi bordi kördi topdi keldi ketdi turdi öylaydi yozadi öqiydi boşla tugat davom töxta kuta yordam
+vatan xalq tinçlik döstlik mehnat hunar ziyo umid orzu maqsad ğalaba kuç quvonç baxt hayot odam inson yurt
+şahar qişloq mahalla köça yöl köprik bozor dökon poyezd maşina velosiped samolyot kema avtobus bekat vokzal
+boğça stadion kino teatr muzey park bino minora masjid madrasa salom rahmat marhamat xayr xuş iltimos keçirasiz
+mehmon mezbon dasturxon bir ikki tört beş yetti sakkiz töqqiz yuz ming yoşlik qariya bolalik yigit qizça ukam
+opam akam onam otam singlim toğli dengizda kölda daryoda dalada boğda uyda maktabda yopdi içdi ekdi çizdi qöşiq
+aytdi raqs öyin öyinçoq töp arğimçoq sirpançiq uçar oltin kumuş temir mis yoğoç şişa qoğoz mato igna boş köz
+quloq burun oğiz til soç qöl barmoq oyoq yurak qorin yelka tirnoq qönğiroq qönğiz qöçqor buzoq eçkilar qözi
+kuçuk yilqi timsoh kiyik buğu ohu jirafa kenguru eşikdan derazadan köçadan maktabdan yaxşilik mehribonlik
+halollik jasorat sabr
+`.split(/\s+/).filter(Boolean);
 // Bosh harf bilan boşlanadigan sözlar (Bosh harflar darsidan keyin)
-const CAPS='Ata Ona Özbek Ğalaba Ilm Bahor Qalam Toşkent Samarqand Buxoro Xiva Namangan Andijon Farğona Navoiy Nukus Özbekiston Vatan Zamin Qarşi Termiz'.split(' ');
+const CAPS='Ata Ona Özbek Ğalaba Ilm Bahor Qalam Toşkent Samarqand Buxoro Xiva Namangan Andijon Farğona Navoiy Nukus Özbekiston Vatan Zamin Qarşi Termiz Ahmad Dilnoza Aziza Sardor Jasur Nodira Bobur Madina Malika Sevara Farhod Zafar Anvar Laylo Qaşqadaryo Sirdaryo Jizzax Surxondaryo Xorazm Margʻilon Qöqon Urganç Guliston Çirçiq Angren Denov Zarafşon'.split(' ').map(w=>w.replace('ʻ','ğ'));
 // Nuqta va vergulli iboralar
-const PH=['Ota, ona.','Bahor keldi.','Köl, boğ.','Qalam, kitob.','Salom, dost.','Quyoş çiqdi.','Men keldim.','Biz keldik.','Toşkent, Buxoro.','Bu bahor.','Qiş keldi, qar yoğdi.','Bulut, yomğir.','Yurt, vatan.'];
+const PH=['Ota, ona.','Bahor keldi.','Köl, boğ.','Qalam, kitob.','Salom, dost.','Quyoş çiqdi.','Men keldim.','Biz keldik.','Toşkent, Buxoro.','Bu bahor.','Qiş keldi, qar yoğdi.','Bulut, yomğir.','Yurt, vatan.','Bugun havo issiq.','Biz maktabga bordik.','Ona, men keldim.','Gul oçildi.','Bahor keldi, gul oçildi.','Osmon moviy, quyoş yorqin.','Dostlar, salom.','Daryo, toğ, dala.','Men yozaman.','Sen öqiysan.','Quyoş çiqdi, tong otdi.','Bola öynadi.','Ona non yopdi.','Kitob, daftar, qalam.','Olma, anor, uzum.','Yoz keldi, kun issiq.','Biz dostmiz.','Ustoz, rahmat.','Maktab, sinf, dars.','Tong otdi, quş sayradi.','Men öqiyman, sen yozasan.','Ota, ona, aka, uka.','Qiş, bahor, yoz, kuz.','Non, osh, suv, çoy.'];
 
 let XB=[];try{XB=JSON.parse(localStorage.getItem('yozish.bank'))||[]}catch(e){}
 // Yoqimsiz / ma'nosiz sözlar — banka hech qaçon tüşmaydi (ustoz qöşgan sözlardan ham olib tashlanadi)
 const BLOCK=new Set('kasal jasad ajal hasad jahl kesak urdi qurt öğri çirik çivin öt meʼda ahd kel şaşka gajak saf ruh qirq tuyoq tirik'.split(' '));
-const BANK=[...new Set(WORDS.concat(CAPS,PH,XB))].filter(w=>!BLOCK.has(w.toLowerCase()));
+const BANK=[...new Set(WORDS.concat(WORDS2,CAPS,PH,XB))].filter(w=>!BLOCK.has(w.toLowerCase()));
 
 // Xilma-xillik: qaysi söz necha marta berilganini eslab qoladi — kam berilganlari birinçi tanlanadi
 const USED={};
@@ -96,7 +129,7 @@ function mk(l,prev){
  }else T.push({t:'m'},{t:'m'},{t:'m'},{t:'m'},{t:'m'});
  // Öyinlar: kamida 4 ta va ekranlarning kamida 40% i; tekis taqsimlanadi, öxirgisi öyin bölib tugaydi
  const G=Math.max(4,Math.ceil(T.length*2/3)),tot=T.length+G;
- const gl=(l.cw||[]).filter(okW).length>=8?WG:LG,off=GI++;
+ const gl=WG,off=GI++;   // söz yetarli bölmasa ham barça öyin turlari işlaydi (söz ö'rniga harf bö'laklari beriladi)
  const known=prev.slice(),out=[];let ti=0,gi=0;
  for(let i=0;i<tot;i++){
   if(Math.floor((i+1)*G/tot)>Math.floor(i*G/tot)){

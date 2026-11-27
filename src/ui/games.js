@@ -31,15 +31,53 @@ function clouds(X,W,H,t,dy){[[.1,.16,1.1,9],[.45,.3,.8,6],[.78,.12,1,12]].forEac
 // Öyin sözlari: faqat örganilgan harflardan tuzilgan, ma'noli sözlar (BANK dan). Xilma-xil, takrorsiz.
 function gPool(kn){const s=new Set((kn||[]).map(c=>c.toLowerCase()));return BANK.filter(w=>okW(w)&&[...w].every(c=>s.has(c)))}
 function gWords(kn,n){const p=gPool(kn);return pickN(p,Math.min(n,p.length))}
-// Harf öyinlari uçun ketma-ketlik: yangi harflar ko'proq, ketma-ket bir xil harf kam
+// Harf bö'laklari (2-4 belgi): "jfj fjf" kabi bir xil bölmasligi uçun turli naqşlar —
+// ikkilanish (ffj), almaşiş (fjfj), ko'zgu (fjjf), bö'g'inga o'xşaş (sal, fak) va aralaş.
+// focus — yangi harflar: ular ko'proq uçraydi.
+const VOW='aeiouö';
+function chunks(kn,n,focus){
+ const L=[...new Set((kn||[]).map(c=>c.toLowerCase()).filter(c=>c.length==1&&c!==' '&&codeOf[c]))];
+ if(!L.length)L.push('f','j');
+ const fo=(focus||[]).map(c=>c.toLowerCase()).filter(c=>L.includes(c));
+ const V=L.filter(c=>VOW.includes(c)),C=L.filter(c=>!VOW.includes(c));
+ const pk=()=>fo.length&&Math.random()<.5?R(fo):R(L);
+ const from=(A)=>{const f=fo.filter(c=>A.includes(c));return f.length&&Math.random()<.5?R(f):R(A)};
+ const two=()=>{const a=pk();let b=pk(),g=0;while(L.length>1&&b===a&&g++<8)b=pk();return[a,b]};
+ const mkc=()=>{
+  const r=Math.random();
+  if(V.length&&C.length&&r<.45){
+   const len=2+(Math.random()*3|0);let w='',cv=Math.random()<.7;
+   for(let i=0;i<len;i++){w+=cv?from(C):from(V);cv=!cv}
+   return w}
+  if(L.length<2){return L[0].repeat(2+(Math.random()*2|0))}
+  const[a,b]=two();
+  if(r<.58)return a+b;
+  if(r<.68)return a+a+b;
+  if(r<.76)return a+b+a;
+  if(r<.83)return a+b+b;
+  if(r<.89)return a+b+a+b;
+  if(r<.94)return a+b+b+a;
+  let w=a,k=1;for(let i=0;i<3+(Math.random()*2|0);i++){const c=pk();if(c===w[w.length-1]&&k>=2)continue;k=c===w[w.length-1]?k+1:1;w+=c}
+  return w;
+ };
+ const out=[],seen=new Set();let g=0;
+ while(out.length<n&&g++<n*40){const w=mkc();if(w.length>=2&&!seen.has(w)){seen.add(w);out.push(w)}}
+ while(out.length<n)out.push(mkc());
+ return out;
+}
+// Harf öyinlari uçun ketma-ketlik: yangi harflar ko'proq, bö'laklardan tuziladi
 function gSeq(kn,n){
  const all=[...new Set(kn||[])].filter(c=>c.length==1&&c!==' '&&codeOf[c.toLowerCase()]);
- if(!all.length)all.push('f','j');
- const nw=all.slice(-3),bag=[];
- all.forEach(c=>{for(let i=0;i<(nw.includes(c)?3:1);i++)bag.push(c)});
- const out=[];let pv='';
- while(out.length<n){const c=R(bag);if(all.length>1&&c===pv&&Math.random()<.9)continue;out.push(c);pv=c}
+ const out=[];
+ for(const w of chunks(kn,n,all.slice(-3)))for(const c of w){if(out.length<n)out.push(c)}
+ while(out.length<n)out.push(R(all.length?all:['f','j']));
  return out;
+}
+// Söz öyinlari uçun: ma'noli sözlar; yetmasa — harf bö'laklari bilan to'ldiriladi (öyin hamişa işlaydi)
+function gItems(kn,n){
+ const w=gWords(kn,n);
+ if(w.length>=n)return w;
+ return sh(w.concat(chunks(kn,n-w.length,(kn||[]).slice(-3))));
 }
 
 /* ---------- umumiy: canvas, sikl, zarralar, e'lon ---------- */
@@ -47,24 +85,29 @@ function gStage(){
  const gm=$('#gm');gm.innerHTML='';
  const H=clamp(Math.round(innerHeight*.44),270,400);
  const cv=document.createElement('canvas');cv.style.height=H+'px';gm.appendChild(cv);
- const X=cv.getContext('2d'),st={cv,X,W:0,H,fx:[],tx:[]};
- const fit=()=>{const d=Math.min(2,window.devicePixelRatio||1),W=gm.clientWidth||900;st.W=W;cv.width=Math.round(W*d);cv.height=Math.round(H*d);X.setTransform(d,0,0,d,0,0)};
+ const X=cv.getContext('2d'),st={cv,X,W:0,H,fx:[],tx:[],dq:LITE?1:Math.min(1.5,window.devicePixelRatio||1)};
+ const fit=()=>{const d=st.dq,W=gm.clientWidth||900;st.W=W;cv.width=Math.round(W*d);cv.height=Math.round(H*d);X.setTransform(d,0,0,d,0,0)};
+ st.fit=fit;
  fit();addEventListener('resize',fit);
  st.off=()=>removeEventListener('resize',fit);
  return st;
 }
 function loop(G,st,upd,drw){
- let raf=0,last=0;
+ let raf=0,last=0,fr=0,acc=0,cnt=0;
  const f=ts=>{
   raf=requestAnimationFrame(f);
-  const dt=Math.min(.05,(ts-(last||ts))/1000);last=ts;
+  const raw=(ts-(last||ts))/1000,dt=Math.min(.05,raw);last=ts;
+  // Avtomatik sifat: kadr sekin bölsa canvas aniqligi pasayadi (qotmaslik uçun)
+  if(++fr>25&&raw<.25){acc+=raw;if(++cnt>=40){
+   if(acc/cnt>.028){if(st.dq>.8){st.dq=Math.max(.7,st.dq-.3);st.fit()}else if(!LITE)setLite(true,true)}
+   acc=0;cnt=0}}
   upd(dt);fxStep(st,dt);drw(st.X,st.W,st.H);fxDraw(st);
  };
  raf=requestAnimationFrame(f);
  G.stop=()=>{cancelAnimationFrame(raf);st.off()};
 }
 function burst(st,x,y,c,n){
- n=n||14;if(st.fx.length>90)return;
+ n=n||14;if(LITE)n=Math.ceil(n/2);if(st.fx.length>(LITE?30:90))return;
  for(let i=0;i<n;i++){const a=Math.random()*TAU,v=70+Math.random()*190;st.fx.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-70,l:.5+Math.random()*.35,c,s:3+Math.random()*4})}
 }
 function pop(st,x,y,t,c){if(st.tx.length<12)st.tx.push({x,y,t,c:c||'#fff',l:.8})}
@@ -94,22 +137,36 @@ function hud(X,W,lives,max,prog,label){
 function finishGame(G,win,sub){
  if(G.over)return;G.over=true;
  setTimeout(()=>{
-  if(win){banner(R(WINS),'win');snd.amazing()}
+  if(win){const n=starsOf(accOf(S));banner(R(WINS),'win','★'.repeat(n)+'☆'.repeat(3-n));snd.amazing()}
   else{banner('Yutqazdingiz','lose',sub||'ENTER — qayta urinib körişh');snd.lose()}
   gameEnd(win);
  },win?350:200);
 }
-// Matnni belgi-belgi çizadi (so'z yozilgan/joriy/qolgan ranglari bilan)
-function drawWord(X,w,cx,cy,size,pos,bad,dark){
+// Matnni belgi-belgi çizadi. Har bir (söz,holat) bir marta alohida rasmga çiziladi va keyin faqat
+// ko'çiriladi — har kadrda strokeText çaqirilmaydi (sekin qurilmalarda qotmaslik uçun).
+const WCACHE=new Map();
+function wordSprite(w,size,pos,bad,dark){
+ const key=w+'|'+size+'|'+pos+'|'+(bad?1:0)+'|'+(dark?1:0);
+ let sp=WCACHE.get(key);if(sp)return sp;
+ if(WCACHE.size>160)WCACHE.clear();
+ const c=document.createElement('canvas'),X=c.getContext('2d'),SC=2,pad=8;
+ X.font=`800 ${size}px ${MONO}`;
+ const cw=X.measureText('M').width*1.12,Wd=Math.ceil(w.length*cw+pad*2),Hd=Math.ceil(size*1.24+pad*2);
+ c.width=Wd*SC;c.height=Hd*SC;X.setTransform(SC,0,0,SC,0,0);
  X.font=`800 ${size}px ${MONO}`;X.textBaseline='middle';X.textAlign='left';
- const cw=X.measureText('M').width*1.12,x0=cx-w.length*cw/2;
+ const cy=Hd/2;
  for(let j=0;j<w.length;j++){
-  const x=x0+j*cw,cur=j==pos;
+  const x=pad+j*cw,cur=j==pos;
   if(cur){rr(X,x-2,cy-size*.62,cw+2,size*1.24,8);X.fillStyle=bad?'rgba(255,90,95,.85)':'rgba(255,224,102,.95)';X.fill()}
   X.lineWidth=5;X.lineJoin='round';
   if(!dark||!cur){X.strokeStyle='rgba(20,30,60,.75)';X.strokeText(w[j],x+cw*.1,cy+1)}
   X.fillStyle=cur?'#24384d':j<pos?'#58e07a':'#fff';X.fillText(w[j],x+cw*.1,cy+1);
  }
+ sp={c,w:Wd,h:Hd,cx:pad+w.length*cw/2};WCACHE.set(key,sp);return sp;
+}
+function drawWord(X,w,cx,cy,size,pos,bad,dark){
+ const s=wordSprite(w,size,pos,bad,dark);
+ X.drawImage(s.c,cx-s.cx,cy-s.h/2,s.w,s.h);
 }
 
 /* ---------- 1) Harf plitkalari (Piano Tiles) ---------- */
@@ -249,8 +306,8 @@ function robotGame(kn,items,title){
  loop(G,st,upd,drw);
  return G;
 }
-GAMES.robot=kn=>robotGame(kn,gWords(kn,6),'Sakrovçi robot');
-GAMES.climb=kn=>{const q=gSeq(kn,18),g=[];for(let i=0;i<q.length;i+=3)g.push(q.slice(i,i+3).join(''));return robotGame(kn,g,'Sakrovçi robot')};
+GAMES.robot=kn=>robotGame(kn,gItems(kn,6),'Sakrovçi robot');
+GAMES.climb=kn=>robotGame(kn,chunks(kn,6,(kn||[]).slice(-3)),'Sakrovçi robot');
 
 /* ---------- 4) Poyga ---------- */
 function drawCar(X,x,y,c,wa){
@@ -263,7 +320,7 @@ function drawCar(X,x,y,c,wa){
  X.restore();
 }
 GAMES.race=function(kn){
- const st=gStage(),G={title:'Poyga',over:false},words=gWords(kn,8),text=words.join(' '),total=text.length;
+ const st=gStage(),G={title:'Poyga',over:false},words=gItems(kn,8),text=words.join(' '),total=text.length;
  const cps=1.15+Math.min(.55,Math.max(0,ALL.indexOf(CL))*.03);
  let i=0,bad=0,bot=0,go=false,di=0,db=0,t=0,wa=0,road=0;
  function upd(dt){
@@ -315,12 +372,33 @@ GAMES.race=function(kn){
 };
 
 /* ---------- 5) Raketa ---------- */
+// Yer yulduzlar orasida ortda qoladi va kiçrayadi, Oy esa uzoqdan kichkina nuqta bölib boşlanadi,
+// raketa egri yöl bilan unga yaqinlaşgan sari kattalaşadi va oxirida Oyga yetib boradi.
 GAMES.rocket=function(kn){
- const st=gStage(),G={title:'Raketa',over:false},words=gWords(kn,8),N=words.length;
- let wi=0,pos=0,fuel=70,t=0,alt=0,bad=0,thr=0,on=false,fall=0,lost=false,low=0;
+ const st=gStage(),G={title:'Raketa',over:false},words=gItems(kn,8),N=words.length;
+ const SS=Array.from({length:LITE?45:90},()=>[Math.random(),Math.random(),.7+Math.random()*1.9]);
+ let wi=0,pos=0,fuel=70,t=0,alt=0,bad=0,thr=0,on=false,fall=0,lost=false,low=0,trav=0,vs=16;
+ const KM=384400,ease=u=>u*u*(3-2*u);
+ // yöl geometriyasi: boşlanğich S, Oy M, yetib borişi E; kubik Bezier egri çiziq
+ function geo(W,H){
+  const S=[W*.15,H*.62],M=[W*(W<600?.68:.76),H*.34],rmax=Math.min(W*.16,H*.25);
+  const dm=[Math.cos(.5),-Math.sin(.5)];
+  const E=[M[0]-dm[0]*(rmax+44),M[1]-dm[1]*(rmax+44)];
+  const dist=Math.hypot(E[0]-S[0],E[1]-S[1]);
+  const C1=[S[0]+(E[0]-S[0])*.04,S[1]-H*.36],C2=[E[0]-dm[0]*dist*.4,E[1]-dm[1]*dist*.4];
+  return{S,M,rmax,E,C1,C2};
+ }
+ function bez(g,u){
+  const v=1-u,a=v*v*v,b=3*v*v*u,c=3*v*u*u,d=u*u*u;
+  const x=a*g.S[0]+b*g.C1[0]+c*g.C2[0]+d*g.E[0],y=a*g.S[1]+b*g.C1[1]+c*g.C2[1]+d*g.E[1];
+  const tx=3*(v*v*(g.C1[0]-g.S[0])+2*v*u*(g.C2[0]-g.C1[0])+u*u*(g.E[0]-g.C2[0]));
+  const ty=3*(v*v*(g.C1[1]-g.S[1])+2*v*u*(g.C2[1]-g.C1[1])+u*u*(g.E[1]-g.C2[1]));
+  return{x,y,a:Math.atan2(tx,-ty)};
+ }
  function upd(dt){
   t+=dt;bad=Math.max(0,bad-dt);thr=Math.max(0,thr-dt*2.2);
   const prog=(wi+(wi<N?pos/words[wi].length:0))/N;alt+=(prog-alt)*Math.min(1,dt*4);
+  vs+=(((on&&!lost)?55:16)+300*thr-vs)*Math.min(1,dt*5);trav+=vs*dt;
   if(G.over){if(lost)fall+=dt*160;return}
   if(on){
    fuel-=(5+3*wi/N)*dt;
@@ -329,17 +407,34 @@ GAMES.rocket=function(kn){
   }
  }
  function drw(X,W,H){
-  sky(X,W,H,'#0a0e2c','#2a2c78');
-  const sp=30+330*thr+(on?50:0);
+  sky(X,W,H,'#070a24','#26286e');
+  // yulduzlar raketa uçgan sari çapga oqib ötadi (tezlikka qarab çizig'i uzayadi)
   X.fillStyle='#fff';
-  for(const s of STARS){const y=(s[1]*H+t*sp*s[2]*.4)%H;X.globalAlpha=.4+s[2]*.2;X.fillRect(s[0]*W,y,s[2],s[2]+thr*s[2]*5)}
+  const ln=clamp(vs*.03,0,22);
+  for(const s of SS){
+   const x=(((s[0]*W-trav*s[2]*.55)%W)+W)%W,y=(s[1]*H+trav*s[2]*.1)%H;
+   X.globalAlpha=.35+s[2]*.22;X.fillRect(x,y,s[2]+ln*s[2]*.5,s[2]);
+  }
   X.globalAlpha=1;
-  const mr=34+alt*26,mx=W*.82,my=58+(1-alt)*10;
+  const g=geo(W,H),e=ease(clamp(alt,0,1));
+  // Yer: boşida katta, uçgan sari kiçrayib ortda qoladi
+  const er=lerp(H*.32,H*.05,e),ex=lerp(W*.07,-W*.04,e),ey=lerp(H*1.02,H*1.3,e);
+  if(ey-er<H){
+   X.save();X.beginPath();X.arc(ex,ey,er,0,TAU);X.fillStyle='#2f78d0';X.fill();X.clip();
+   X.fillStyle='#3fae5a';
+   [[-.3,-.5,.5,.3],[.35,-.2,.4,.28],[-.1,.1,.3,.2]].forEach(([a,b,c,d])=>{X.beginPath();X.ellipse(ex+a*er,ey+b*er,c*er,d*er,.4,0,TAU);X.fill()});
+   X.restore();
+   X.strokeStyle='rgba(140,200,255,.45)';X.lineWidth=3;X.beginPath();X.arc(ex,ey,er+1.5,0,TAU);X.stroke();
+  }
+  // Oy: uzoqda nuqta, yaqinlaşgan sari kattalaşadi
+  const mr=lerp(6,g.rmax,Math.pow(clamp(alt,0,1),1.5)),mx=g.M[0],my=g.M[1];
+  X.fillStyle='rgba(255,250,220,.08)';X.beginPath();X.arc(mx,my,mr*1.35,0,TAU);X.fill();
   X.fillStyle='#e9e6d6';X.beginPath();X.arc(mx,my,mr,0,TAU);X.fill();
-  X.fillStyle='#cfcbb6';[[-.3,-.2,.2],[.25,.15,.26],[-.1,.4,.14]].forEach(([a,b,c])=>{X.beginPath();X.arc(mx+a*mr,my+b*mr,c*mr,0,TAU);X.fill()});
-  // raketa
-  const rx=W*.2,ry=H*.74-alt*H*.42+fall,sh=bad>0?Math.sin(t*90)*3:0;
-  X.save();X.translate(rx+sh,ry);if(lost)X.rotate(Math.min(1.2,fall/160));
+  if(mr>14){X.fillStyle='#cfcbb6';[[-.3,-.2,.2],[.25,.15,.26],[-.1,.4,.14],[.45,-.35,.12]].forEach(([a,b,c])=>{X.beginPath();X.arc(mx+a*mr,my+b*mr,c*mr,0,TAU);X.fill()})}
+  // raketa: egri yöl bö'yiça, burni yöl tomonga qaraydi
+  const p=bez(g,clamp(alt,0,1)),hov=on?0:Math.sin(t*3)*3;
+  const sh=bad>0?Math.sin(t*90)*3:0;
+  X.save();X.translate(p.x+sh,p.y+hov+fall);X.rotate(p.a+(lost?Math.min(1.4,fall/150):0));
   const fl=(on&&!lost?1:.3)*(26+Math.sin(t*40)*8+thr*22);
   X.fillStyle='#ff9433';X.beginPath();X.moveTo(-9,22);X.lineTo(0,22+fl);X.lineTo(9,22);X.fill();
   X.fillStyle='#ffe066';X.beginPath();X.moveTo(-5,22);X.lineTo(0,22+fl*.6);X.lineTo(5,22);X.fill();
@@ -354,12 +449,16 @@ GAMES.rocket=function(kn){
   rr(X,bx,by,18,bh,9);X.fillStyle='rgba(255,255,255,.2)';X.fill();
   const fh=bh*fuel/100;if(fh>2){rr(X,bx,by+bh-fh,18,fh,9);X.fillStyle=fuel>40?'#3dbb5a':fuel>18?'#f2bd00':'#ff5a5f';X.fill()}
   X.font=`800 13px ${SANS}`;X.textAlign='center';X.textBaseline='alphabetic';X.fillStyle='#fff';X.fillText('Yoqilği',bx+9,by-8);
+  // Oygacha masofa
+  const rem=Math.round(KM*(1-clamp(alt,0,1))/100)*100,txt=alt>.995?'Oyga yetdik! 🌙':'Oygacha: '+String(rem).replace(/\B(?=(\d{3})+$)/g,' ')+' km';
+  X.textAlign='left';X.font=`800 14px ${SANS}`;X.lineWidth=3;X.strokeStyle='rgba(7,10,36,.7)';X.strokeText(txt,12,H-10);X.fillStyle='#cfe6ff';X.fillText(txt,12,H-10);
   // söz
+  const fs=clamp(W/17,30,52),cy=H*.78;
   if(wi<N){
-   drawWord(X,words[wi],W*.52,H*.46,clamp(W/17,30,52),pos,bad>0);
-   if(wi+1<N){X.font=`700 18px ${MONO}`;X.textAlign='center';X.fillStyle='rgba(255,255,255,.55)';X.fillText('keyingi: '+words[wi+1],W*.52,H*.46+54)}
+   drawWord(X,words[wi],W*.5,cy,fs,pos,bad>0);
+   if(wi+1<N){X.font=`700 18px ${MONO}`;X.textAlign='center';X.fillStyle='rgba(255,255,255,.55)';X.fillText('keyingi: '+words[wi+1],W*.5,cy+fs*.62+20)}
   }
-  if(!on){X.textAlign='center';X.font=`800 18px ${SANS}`;X.fillStyle='#ffe066';X.fillText('Yozişni boşlang — raketa uçadi!',W*.52,H*.46-70)}
+  if(!on){X.textAlign='center';X.font=`800 18px ${SANS}`;X.fillStyle='#ffe066';X.fillText('Yozişni boşlang — raketa uçadi!',W*.5,cy-fs*.62-14)}
   hud(X,W,0,0,(wi+(wi<N?pos/words[wi].length:0))/N,wi+' / '+N);
  }
  G.key=c=>{

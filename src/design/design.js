@@ -161,6 +161,16 @@ td,th{padding:2px 12px;text-align:left}
 .mut{color:var(--mut)}
 @media(prefers-reduced-motion:reduce){.shake,.stars span.on{animation:none!important}.cf{display:none}}
 .cf{will-change:transform}
+.lst{margin-left:6px;font-size:14px;color:var(--sund);font-weight:800}
+.gain{font:900 36px "Trebuchet MS",sans-serif;color:var(--sund);margin:4px 0}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);max-width:92vw;background:#24384d;color:#fff;padding:10px 18px;border-radius:14px;z-index:60;font-size:15px;box-shadow:0 4px 0 rgba(0,0,0,.25)}
+/* Yengil rejim */
+html.lite{scroll-behavior:auto}
+.lite *{transition:none!important}
+.lite #hsv,.lite .col{display:none!important}
+.lite .cf{display:none}
+.lite .k.x{transform:none;box-shadow:none}
+.lite .shake{animation:none}
 `;
 const st = document.createElement('style');
 st.id = 'yz-design';
