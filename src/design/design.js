@@ -206,7 +206,7 @@ td,th{padding:2px 12px;text-align:left}
 .pp img{width:52px;height:52px;border-radius:50%;object-fit:cover;flex:none;background:#fff;border:2px solid #fff;box-shadow:0 0 0 2px var(--bd)}
 .pp small{display:block;font-size:13px;color:var(--mut);line-height:1.3}
 .pp b{font-size:17px;line-height:1.3}
-.club-credit{grid-column:1/-1;display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;min-height:68px;padding:10px 16px;background:#f1faff;border:2px solid var(--bd);border-radius:18px;color:var(--ink)}
+.club-credit{grid-column:1/-1;display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-height:68px;padding:10px 16px;background:#f1faff;border:2px solid var(--bd);border-radius:18px;color:var(--ink)}
 .club-credit img{width:76px;height:76px;object-fit:contain;object-position:center;border-radius:16px;background:#fff;flex:none;border:2px solid #fff;box-shadow:0 0 0 2px var(--bd);padding:3px;box-sizing:border-box}
 .club-name,.club-note{font-size:20px;font-weight:750;line-height:1.3;color:var(--ink)}
 .club-note{max-width:360px}
