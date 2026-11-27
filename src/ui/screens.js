@@ -25,7 +25,7 @@ function head(){
  const stg=stage(),nx=TH[stg],dd=P.day[today()]||0,aw=avgWpm(),aa=avgAcc();
  $('#tr').innerHTML=tree()+`<div class="tt"><b>Nihol (${stg}/5)</b><br>Ball: ${P.pts}<br>${nx!=null?'Keyingi bosqiçgaça: '+(nx-P.pts):'Eng yuqori bosqiç!'}</div>`;
  $('#st').innerHTML=`<div class="chip"><b>★ ${starsTot()}</b>yulduz</div><div class="chip"><b>${aw==null?'--':aw}</b>söz/daq (örtaça)</div><div class="chip"><b>${aa==null?'--':aa+'%'}</b>aniqlik (örtaça)</div>`
-  +`<div class="chip wide">Kunlik maqsad: <b style="display:inline;font-size:18px">${fmt(dd)}</b> / ${fmt(GOAL)}<div class="pb"><i style="width:${Math.min(100,dd/GOAL*100)}%"></i></div>Keyingi ekranga ötiş uçun: aniqlik kamida <b style="display:inline;font-size:15px">${PASS}%</b>, tezlik kamida <b style="display:inline;font-size:15px">${MIN_WPM}</b> söz/daq</div>`;
+  +`<div class="chip wide">Kunlik maqsad: <b style="display:inline;font-size:18px">${fmt(dd)}</b> / ${fmt(GOAL)}<div class="pb"><i style="width:${Math.min(100,dd/GOAL*100)}%"></i></div>Keyingi ekranga ötiş uçun: aniqlik kamida <b style="display:inline;font-size:15px">${PASS}%</b></div>`;
 }
 function home(){
  show('home');head();
