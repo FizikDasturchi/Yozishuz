@@ -18,7 +18,7 @@ function setup(){
   PR.setProperties({SS:ss.getId(), FILES:files.getId(), SECRET:Utilities.getUuid()+Utilities.getUuid()});
   return 'Tayyor';
 }
-function norm(s){return String(s||'').toLowerCase().replace(/ş/g,'sh').replace(/ç/g,'ch').replace(/ö/g,'o').replace(/ğ/g,'g').replace(/[^a-z]/g,'');}
+function norm(s){return String(s||'').toLowerCase().replace(/[şŞ]/g,'sh').replace(/[çÇ]/g,'ch').replace(/[öÖ]/g,'o').replace(/[ğĞ]/g,'g').replace(/[ʻʼ’‘`´]/g,'').replace(/[^a-z]/g,'');}
 function sheet(n){return SpreadsheetApp.openById(PR.getProperty('SS')).getSheetByName(n);}
 function all(n){const v=sheet(n).getDataRange().getValues(),h=v.shift();return v.map((r,i)=>{const o={_r:i+2};h.forEach((k,j)=>o[k]=r[j]);return o;});}
 function put(n,o){sheet(n).appendRow(H[n].map(k=>o[k]===undefined?'':o[k]));}
@@ -63,6 +63,11 @@ function route(b){
     return {ok:true,t:mkToken(x.id),u:pub(x)};
   }
   if(A=='me') return {ok:true,u:u?pub(u):null,now};
+  if(A=='changePass'){
+    need(u,'Avval hisobga kiring'); const old=String(b.old||''),np=String(b.p||'');
+    need(old&&u.hash===hash(old,u.salt),'Eski parol notoʻgʻri'); need(np.length>=6,'Yangi parol kamida 6 belgi boʻlsin');
+    const salt=Utilities.getUuid(); setCell('Users',u._r,'salt',salt); setCell('Users',u._r,'hash',hash(np,salt)); return {ok:true};
+  }
   if(A=='contests'){
     const rs=all('Results');
     return {ok:true,now,list:all('Contests').map(c=>({id:c.id,title:c.title,plan:+c.plan,dur:+c.dur,state:st(c,now),startAt:+c.startAt,endAt:+c.endAt,file:!!c.fileName,n:rs.filter(r=>r.cid==c.id).length}))

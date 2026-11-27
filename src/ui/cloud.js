@@ -16,9 +16,13 @@ async function api(a,o){
 const isAdm=()=>U&&(U.role=='admin'||U.role=='main');
 function setU(j){U=j?j.u:null;if(j&&j.t){TOK=j.t;try{localStorage.setItem('yozish.tok',TOK)}catch(e){}}if(!U){TOK='';try{localStorage.removeItem('yozish.tok')}catch(e){}}authUI()}
 function authUI(){
- $('#au').innerHTML=U?`<b>${esc(U.name)}</b>${U.role=='main'?' ★':U.role=='admin'?' ✔':''} <button class="sm" id="lo">Çiqiş</button>`:`<button class="sm pri" id="li">Kirish / Röyhatdan ötiş</button>`;
- if(U)$('#lo').onclick=()=>{setU(null);navTo('home')};else $('#li').onclick=()=>login();
+ $('#au').innerHTML=U?`<button class="sm" id="pw">🔑 Parol</button> <b>${esc(U.name)}</b>${U.role=='main'?' ★':U.role=='admin'?' ✔':''} <button class="sm" id="lo">Çiqiş</button>`:`<button class="sm pri" id="li" title="Kirish / Röyhatdan ötiş">👤 Kirish</button>`;
+ if(U){$('#lo').onclick=()=>{setU(null);navTo('home')};$('#pw').onclick=changePass;}else $('#li').onclick=()=>login();
  $('#nu').hidden=!isAdm();
+}
+function changePass(){
+ const d=$('#dg'); d.innerHTML=`<h3>Parolni almaştirish</h3><input id="po" type="password" placeholder="Eski parol"><input id="pn" type="password" placeholder="Yangi parol (kamida 6 belgi)"><input id="pc" type="password" placeholder="Yangi parolni qayta kiriting"><p class="mut" id="pe"></p><p><button class="pri" id="ps">Saqlash</button> <button id="px">Yopiş</button></p>`;
+ $('#px').onclick=()=>d.close(); $('#ps').onclick=async()=>{const b=$('#ps');b.disabled=true;$('#pe').textContent='Kuting…';try{if($('#pn').value!==$('#pc').value)throw new Error('Yangi parollar bir xil emas');await api('changePass',{old:$('#po').value,p:$('#pn').value});$('#pe').textContent='Parol almaştirildi';setTimeout(()=>d.close(),700)}catch(e){$('#pe').textContent=e.message;b.disabled=false}};d.showModal();
 }
 function login(cb){
  const d=$('#dg');let reg=false;
