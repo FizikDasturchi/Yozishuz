@@ -14,11 +14,11 @@
 const MIRX=13.5; // çap qöl -> öng qöl: x' = 13.5 - x (F <-> J)
 // Çap qöl: [bo'g'im x, bo'g'im y, tag eni, uç eni, tinç holatdagi uç x, uç y]
 const HAND={
- p:[2.00,3.70,.78,.66,2.15,1.35],
- r:[3.05,3.50,.88,.74,3.20,1.15],
- m:[4.20,3.45,.92,.76,4.25,1.05],
- i:[5.30,3.60,.94,.78,5.30,1.30],
- t:[6.10,5.70,1.08,.86,6.40,3.70]
+ p:[2.00,4.30,.86,.66,2.15,1.35],
+ r:[3.05,4.20,1.00,.74,3.20,1.15],
+ m:[4.20,4.15,1.02,.76,4.25,1.05],
+ i:[5.30,4.30,1.04,.78,5.30,1.30],
+ t:[5.70,6.00,1.15,.92,6.40,3.70]
 };
 // Kaft + bilak + bilak ustuni (silliq egri çiziq bilan çiziladi)
 const PALM=[[1.5,4.2],[1.7,3.6],[2.6,3.4],[3.7,3.3],[4.8,3.3],[5.7,3.55],[6.3,4.2],[6.55,5.0],[6.3,6.0],[5.8,6.9],[5.6,8.2],[2.5,8.2],[2.3,6.8],[1.8,5.5]];
@@ -37,22 +37,22 @@ function smoothD(pts,mir){
  }
  return d+'Z';
 }
-const fingerSVG=id=>`<g class="fg f-${id[1]=='t'?'th':id}" data-f="${id}"><path class="fs"/><path class="fh"/><path class="fc"/><path class="fc"/></g>`;
+const fingerSVG=id=>`<g class="fg f-${id[1]=='t'?'th':id}" data-f="${id}"><path class="fs"/><path class="fa"/><path class="fh"/><path class="fc"/><path class="fc"/></g>`;
 
 function handsBuild(){
  const svg=$('#hsv');if(!svg)return;
  let o='<rect class="col" id="hcol" x="0" y="0" width="1" height="1" rx=".14" style="display:none"/>';
  ['l','r'].forEach(s=>{
-  o+=`<g class="hand" data-h="${s}"><path class="palm" d="${smoothD(PALM,s=='r')}"/>`;
-  HIDS.filter(id=>id[0]==s).forEach(id=>o+=fingerSVG(id));
-  o+='</g>';
+  const fl=HIDS.filter(id=>id[0]==s),cl=id=>'f-'+(id[1]=='t'?'th':id),pd=smoothD(PALM,s=='r');
+  const tn=[2.0,3.05,4.2,5.3].map(x=>{const b=3.4+(x-3.7)*.3;return `M${s=='r'?MIRX-x:x} 3.9L${s=='r'?MIRX-b:b} 7.2`}).join('');
+  o+=`<g class="hand" data-h="${s}"><g class="ol"><path class="po" d="${pd}"/>${fl.map(id=>`<path class="fo ${cl(id)}" data-o="${id}"/>`).join('')}</g><g class="fl"><path class="palm" d="${pd}"/><path class="tn" d="${tn}"/>${fl.map(fingerSVG).join('')}</g></g>`;
  });
  svg.innerHTML=o;
  ['l','r'].forEach(s=>HM[s]={x:0,y:0,g:svg.querySelector(`[data-h="${s}"]`)});
  HIDS.forEach(id=>{
   const m=id[0]=='r',h=HAND[id[1]],g=svg.querySelector(`[data-f="${id}"]`);
   const f=FD[id]={kx:m?MIRX-h[0]:h[0],ky:h[1],wb:h[2],wt:h[3],rx:m?MIRX-h[4]:h[4],ry:h[5],pulse:0,bs:m?-1:1,g,
-   fs:g.querySelector('.fs'),fh:g.querySelector('.fh'),fc:g.querySelectorAll('.fc')};
+   fs:g.querySelector('.fs'),fa:g.querySelector('.fa'),o:svg.querySelector('[data-o="'+id+'"]'),fh:g.querySelector('.fh'),fc:g.querySelectorAll('.fc')};
   f.cx=f.rx;f.cy=f.ry;f.L0=Math.hypot(f.rx-f.kx,f.ry-f.ky);
   f.hcx=m?9.7:3.8;
  });
@@ -71,7 +71,7 @@ function handsSet(tg){
   if(tg!==lo){HA.sft=fo[0][0]=='l'?'rp':'lp';const s=SHIFTC[HA.sft[0]];HT[HA.sft]=[s[0],s[1]+.22]}
  }
  for(const id in FD){const f=FD[id];
-  f.g.classList.toggle('on',id==HA.act);f.g.classList.toggle('on2',id==HA.sft)}
+  f.g.classList.toggle('on',id==HA.act);f.g.classList.toggle('on2',id==HA.sft);f.o.classList.toggle('on',id==HA.act||id==HA.sft)}
  // tugma ustuni (typing.com kabi) — şu barmoq rangida
  const col=$('#hcol');
  if(col){
@@ -99,7 +99,9 @@ function drawFinger(f){
   const w=(f.wb+(wt-f.wb)*t)/2;
   A.push(S2(x-ey*w)+' '+S2(y+ex*w));B.push(S2(x+ey*w)+' '+S2(y-ex*w));M.push([x,y,ex,ey,w])}
  const r=S2(wt/2);
- f.fs.setAttribute('d','M'+A.join('L')+'A'+r+' '+r+' 0 0 0 '+B[N]+'L'+B.slice(0,N).reverse().join('L')+'Z');
+ const arc='A'+r+' '+r+' 0 0 0 '+B[N],d='M'+A.join('L')+arc+'L'+B.slice(0,N).reverse().join('L')+'Z';
+ f.fs.setAttribute('d',d);f.o.setAttribute('d',d);
+ f.fa.setAttribute('d','M'+A.slice(4).join('L')+arc+'L'+B.slice(4,N).reverse().join('L')+'Z');
  f.fh.setAttribute('d','M'+M.slice(1,8).map(m=>S2(m[0]+m[3]*m[4]*.38)+' '+S2(m[1]-m[2]*m[4]*.38)).join('L'));
  [4,7].forEach((i,k)=>{const m=M[i],h=m[4]*.55;
   f.fc[k].setAttribute('d',`M${S2(m[0]-m[3]*h)} ${S2(m[1]+m[2]*h)}L${S2(m[0]+m[3]*h)} ${S2(m[1]-m[2]*h)}`)});
