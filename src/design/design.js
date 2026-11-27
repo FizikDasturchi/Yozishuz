@@ -119,14 +119,16 @@ button.sm{padding:4px 14px;font-size:15px}
 .hand{opacity:.96}
 .po,.fo{fill:none;stroke:#b07a58;stroke-width:.14;stroke-linejoin:round}
 .fo.on{stroke:#2a3b4d;stroke:color-mix(in srgb,var(--fc) 55%,#000)}
-.palm{fill:var(--skin);stroke:none}
-.fg .fs{fill:color-mix(in srgb,var(--skin) 76%,var(--fc) 24%);stroke:none}
+.palm{fill:url(#skinGrad);stroke:#b47b59;stroke-width:.055;stroke-linejoin:round;filter:drop-shadow(.04px .07px .04px rgba(91,49,30,.28))}
+.fg .fs{fill:url(#fingerGrad);stroke:#b47b59;stroke-width:.045;stroke-linejoin:round}
 .fg.on .fs,.fg.on2 .fs{fill:color-mix(in srgb,var(--skin) 35%,var(--fc) 65%)}
 .tn{fill:none;stroke:#b07a58;stroke-opacity:.2;stroke-width:.05;stroke-linecap:round}
 .fg .fa{fill:var(--fc);opacity:.18}
 .fg.on .fa,.fg.on2 .fa{opacity:.92}
 .fg .fh{fill:none;stroke:#fff;stroke-opacity:.35;stroke-width:.1;stroke-linecap:round;stroke-linejoin:round}
-.fg .fc{fill:none;stroke:#a9693f;stroke-opacity:.33;stroke-width:.03;stroke-linecap:round}
+.fg .fc{fill:none;stroke:#a9693f;stroke-opacity:.42;stroke-width:.045;stroke-linecap:round}
+.fg .nail{fill:url(#nailGrad);stroke:#c48d78;stroke-width:.035;opacity:.96}
+.po,.fo{stroke:#9e694c;stroke-width:.11;stroke-linejoin:round}
 .col{fill:var(--fc);opacity:.2}
 
 /* Öyinlar (canvas — DOM animatsiyasi yöq, şuning uçun qotmaydi) */
@@ -199,11 +201,13 @@ td,th{padding:2px 12px;text-align:left}
 #ft .in{max-width:960px;margin:0 auto;padding:22px 20px 18px}
 #ft h3{margin:0 0 4px;font-size:20px}
 #ft p{margin:0 0 16px;font-size:15px}
-.ppl{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:16px}
+.ppl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:16px}
 .pp{display:flex;align-items:center;gap:12px;background:#f1faff;border:2px solid var(--bd);border-radius:18px;padding:10px 14px}
 .pp img{width:52px;height:52px;border-radius:50%;object-fit:cover;flex:none;background:#fff;border:2px solid #fff;box-shadow:0 0 0 2px var(--bd)}
 .pp small{display:block;font-size:13px;color:var(--mut);line-height:1.3}
 .pp b{font-size:17px;line-height:1.3}
+.club-credit{grid-column:1/-1;display:flex;align-items:center;gap:12px;min-height:68px;padding:10px 16px;background:#f1faff;border:2px solid var(--bd);border-radius:18px;color:var(--ink);font-size:16px;font-weight:800}
+.club-credit img{width:64px;height:48px;object-fit:contain;border-radius:10px;background:#fff;flex:none}
 .lnk{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
 .tgl{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;color:#fff;text-decoration:none;font-weight:700;font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.18);transition:transform .06s}
 .tgl svg{width:20px;height:20px;flex:none}
@@ -211,6 +215,8 @@ td,th{padding:2px 12px;text-align:left}
 .tgl:active{transform:translateY(2px);box-shadow:none}
 .tgl:focus-visible{outline:3px solid var(--skyd);outline-offset:2px}
 .tgl.a1{background:#a3202f}
+.tgl.club-link{background:#087eaa}
+.lnk .polyu-link{margin-left:auto}
 .ts-split{display:inline-flex;align-items:stretch;border-radius:999px;overflow:hidden;box-shadow:0 3px 0 rgba(0,0,0,.18);vertical-align:middle}
 .ts-half{display:inline-flex;align-items:center;gap:8px;padding:8px 13px;color:#fff;text-decoration:none;font-weight:800;font-size:15px;transition:filter .15s,transform .06s;white-space:nowrap}
 .ts-half svg{width:20px;height:20px;flex:none}
@@ -220,7 +226,8 @@ td,th{padding:2px 12px;text-align:left}
 .ts-half:active{transform:translateY(2px)}
 .ts-half:focus-visible{outline:3px solid var(--skyd);outline-offset:-4px;z-index:1}
 .ts-youtube{border-left:1px solid rgba(255,255,255,.28)}
-@media(max-width:420px){.ts-half{padding:8px 10px;font-size:14px;gap:6px}.ts-half svg{width:18px;height:18px}}
+@media(max-width:560px){.ppl{grid-template-columns:1fr}.club-credit{grid-column:1}.lnk .polyu-link{margin-left:0}}
+@media(max-width:420px){.ts-half{padding:8px 10px;font-size:14px;gap:6px}.ts-half svg{width:18px;height:18px}.club-credit{font-size:14px;padding:9px 12px}.club-credit img{width:56px;height:44px}}
 .cp{border-top:2px solid var(--bd);padding-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;font-size:14px;color:var(--mut)}
 .cp b{color:var(--ink)}
 

@@ -37,11 +37,11 @@ function smoothD(pts,mir){
  }
  return d+'Z';
 }
-const fingerSVG=id=>`<g class="fg f-${id}" data-f="${id}"><path class="fs"/><path class="fa"/><path class="fh"/><path class="fc"/><path class="fc"/></g>`;
+const fingerSVG=id=>`<g class="fg f-${id}" data-f="${id}"><path class="fs"/><path class="fa"/><path class="fh"/><path class="fc"/><path class="fc"/><ellipse class="nail"/></g>`;
 
 function handsBuild(){
  const svg=$('#hsv');if(!svg)return;
- let o='<rect class="col" id="hcol" x="0" y="0" width="1" height="1" rx=".14" style="display:none"/>';
+ let o='<defs><linearGradient id="skinGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f8d8bd"/><stop offset=".48" stop-color="#edb995"/><stop offset="1" stop-color="#d99a75"/></linearGradient><linearGradient id="fingerGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e4aa88"/><stop offset=".42" stop-color="#f7d2b4"/><stop offset=".78" stop-color="#efbd9b"/><stop offset="1" stop-color="#d89470"/></linearGradient><linearGradient id="nailGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0e9"/><stop offset="1" stop-color="#dca28a"/></linearGradient></defs><rect class="col" id="hcol" x="0" y="0" width="1" height="1" rx=".14" style="display:none"/>';
  ['l','r'].forEach(s=>{
   const fl=HIDS.filter(id=>id[0]==s),cl=id=>'f-'+id,pd=smoothD(PALM,s=='r');
   const tn=[2.0,3.05,4.2,5.3].map(x=>{const b=3.4+(x-3.7)*.3;return `M${s=='r'?MIRX-x:x} 3.9L${s=='r'?MIRX-b:b} 7.2`}).join('');
@@ -52,7 +52,7 @@ function handsBuild(){
  HIDS.forEach(id=>{
   const m=id[0]=='r',h=HAND[id[1]],g=svg.querySelector(`[data-f="${id}"]`);
   const f=FD[id]={kx:m?MIRX-h[0]:h[0],ky:h[1],wb:h[2],wt:h[3],rx:m?MIRX-h[4]:h[4],ry:h[5],pulse:0,bs:m?-1:1,g,
-   fs:g.querySelector('.fs'),fa:g.querySelector('.fa'),o:svg.querySelector('[data-o="'+id+'"]'),fh:g.querySelector('.fh'),fc:g.querySelectorAll('.fc')};
+   fs:g.querySelector('.fs'),fa:g.querySelector('.fa'),o:svg.querySelector('[data-o="'+id+'"]'),fh:g.querySelector('.fh'),fc:g.querySelectorAll('.fc'),na:g.querySelector('.nail')};
   f.cx=f.rx;f.cy=f.ry;f.L0=Math.hypot(f.rx-f.kx,f.ry-f.ky);
   f.hcx=m?9.7:3.8;
  });
@@ -101,6 +101,11 @@ function drawFinger(f){
  const r=S2(wt/2);
  const arc='A'+r+' '+r+' 0 0 0 '+B[N],d='M'+A.join('L')+arc+'L'+B.slice(0,N).reverse().join('L')+'Z';
  f.fs.setAttribute('d',d);f.o.setAttribute('d',d);
+ // Fingertip nail follows the finger as it reaches and presses each key.
+ const ang=Math.atan2(dy,dx)*180/Math.PI, nx=tx-dx/L*wt*.23, ny=ty-dy/L*wt*.23;
+ f.na.setAttribute('cx',S2(nx));f.na.setAttribute('cy',S2(ny));
+ f.na.setAttribute('rx',S2(wt*.22));f.na.setAttribute('ry',S2(wt*.13));
+ f.na.setAttribute('transform',`rotate(${S2(ang)} ${S2(nx)} ${S2(ny)})`);
  f.fa.setAttribute('d','M'+A.slice(4).join('L')+arc+'L'+B.slice(4,N).reverse().join('L')+'Z');
  f.fh.setAttribute('d','M'+M.slice(1,8).map(m=>S2(m[0]+m[3]*m[4]*.38)+' '+S2(m[1]-m[2]*m[4]*.38)).join('L'));
  [4,7].forEach((i,k)=>{const m=M[i],h=m[4]*.55;
