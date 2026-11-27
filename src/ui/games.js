@@ -104,7 +104,7 @@ function loop(G,st,upd,drw){
   upd(dt);fxStep(st,dt);drw(st.X,st.W,st.H);fxDraw(st);
  };
  raf=requestAnimationFrame(f);
- G.stop=()=>{cancelAnimationFrame(raf);st.off()};
+ G.stop=()=>{cancelAnimationFrame(raf);if(G.finishTimer)clearTimeout(G.finishTimer);st.off()};
 }
 function burst(st,x,y,c,n){
  n=n||14;if(LITE)n=Math.ceil(n/2);if(st.fx.length>(LITE?30:90))return;
@@ -136,10 +136,11 @@ function hud(X,W,lives,max,prog,label){
 }
 function finishGame(G,win,sub){
  if(G.over)return;G.over=true;
- setTimeout(()=>{
+ G.finishTimer=setTimeout(()=>{
+  if(S.game!==G||$('#pr').hidden)return;
   if(win){const n=starsOf(accOf(S));banner(R(WINS),'win','★'.repeat(n)+'☆'.repeat(3-n));snd.amazing()}
   else{banner('Yutqazdingiz','lose',sub||'ENTER — qayta urinib körişh');snd.lose()}
-  gameEnd(win);
+  gameEnd(win,G);
  },win?350:200);
 }
 // Matnni belgi-belgi çizadi. Har bir (söz,holat) bir marta alohida rasmga çiziladi va keyin faqat

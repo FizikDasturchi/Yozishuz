@@ -16,7 +16,7 @@ function setLite(v,remember){
  LITE=!!v;document.documentElement.classList.toggle('lite',LITE);
  try{if(remember)localStorage.setItem('yozish.lite',LITE?'1':'0')}catch(e){}
  const b=$('#lt');if(b)b.textContent='Yengil '+(LITE?'✓':'✗');
- const h=$('#hsv');if(h&&!$('#pr').hidden)h.style.display=(LITE||(S&&S.gm))?'none':'';
+ const h=$('#hsv'),photo=$('#handPhoto');if(h&&!$('#pr').hidden){const hide=LITE||(S&&S.gm);h.style.display=hide?'none':'';if(photo)photo.style.display=hide?'none':'';}
  if(!LITE&&typeof handsStart==='function')handsStart();
 }
 $('#lt').onclick=()=>setLite(!LITE,true);

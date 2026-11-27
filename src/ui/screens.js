@@ -65,7 +65,10 @@ function openPr(){jankStart();ac();if(document.activeElement)document.activeElem
 function begin(i){CL=ALL[i];const d=dn(CL);CI=d>=CL.sc.length?0:d;openPr()}
 function problem(){const l=[...ALL].reverse().find(x=>dn(x)>0)||ALL[0];
  CL={id:'pk',pk:1,t:'Problem harflar',lk:l.lk,cw:l.cw,sc:[{t:'p'}]};CI=0;openPr()}
-function gStop(){if(S.game&&S.game.stop)S.game.stop()}
+function gStop(){
+ if(S.endTimer){clearTimeout(S.endTimer);S.endTimer=0}
+ if(S.game&&S.game.stop)S.game.stop();
+}
 function exit(){clearInterval(S.iv);gStop();jankStop();$('#hsv').style.display='';if(CL&&CL.test)tests();else home()}
 // Sekin qurilmani aniqlaş: maşq paytida kadrlar uzoq (>60 ms) bölsa, yengil rejim özi yoqiladi
 let JK={raf:0,last:0,bad:[],on:false};
@@ -89,6 +92,7 @@ function start(){
  $('#res').hidden=true;$('#res').innerHTML='';$('#play').hidden=false;
  $('#gm').hidden=!S.gm;$('#gm').innerHTML='';
  $('#hsv').style.display=(S.gm||LITE||CL.test)?'none':'';
+ $('#handPhoto').style.display=(S.gm||LITE||CL.test)?'none':'';
  $('#kbs').hidden=!!CL.test;$('#hint').innerHTML='';   // sinovda klaviatura va qöllar körsatilmaydi
  $('#ex').textContent=CL.test?'« Sinov':'« Darslar';
  $('#txt').className=S.tk?'tk':'';   // öyinda (va yengil rejimda) qöllar çizilmaydi — yengil va silliq işlaydi
@@ -205,8 +209,11 @@ function shake(el){
 }
 
 // Öyin tugadi (yutdi/yutqazdi): e'lon körsatiladi, keyin natija oynasi (ENTER bosilsa — darhol)
-function gameEnd(win){
+function gameEnd(win,G){
  if(S.done||S.ending)return;
+ const state=S;
  S.ending=1;S.lost=!win;S.endAt=Date.now();
- setTimeout(()=>{if(!S.done)finish()},win?1700:1300);
+ S.endTimer=setTimeout(()=>{
+  if(S===state&&!state.done&&state.game===G&&!$('#pr').hidden)finish();
+ },win?1700:1300);
 }
