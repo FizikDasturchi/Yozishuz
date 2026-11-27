@@ -210,7 +210,17 @@ td,th{padding:2px 12px;text-align:left}
 .tgl:hover{filter:brightness(1.08)}
 .tgl:active{transform:translateY(2px);box-shadow:none}
 .tgl:focus-visible{outline:3px solid var(--skyd);outline-offset:2px}
-.tgl.a1{background:#a3202f}.tgl.a2{background:#1688c4}.tgl.a3{background:#e62117}
+.tgl.a1{background:#a3202f}
+.ts-split{display:inline-flex;align-items:stretch;border-radius:999px;overflow:hidden;box-shadow:0 3px 0 rgba(0,0,0,.18);vertical-align:middle}
+.ts-half{display:inline-flex;align-items:center;gap:8px;padding:8px 13px;color:#fff;text-decoration:none;font-weight:800;font-size:15px;transition:filter .15s,transform .06s;white-space:nowrap}
+.ts-half svg{width:20px;height:20px;flex:none}
+.ts-telegram{background:#1688c4}
+.ts-youtube{background:#e62117}
+.ts-half:hover{filter:brightness(1.1)}
+.ts-half:active{transform:translateY(2px)}
+.ts-half:focus-visible{outline:3px solid var(--skyd);outline-offset:-4px;z-index:1}
+.ts-youtube{border-left:1px solid rgba(255,255,255,.28)}
+@media(max-width:420px){.ts-half{padding:8px 10px;font-size:14px;gap:6px}.ts-half svg{width:18px;height:18px}}
 .cp{border-top:2px solid var(--bd);padding-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;font-size:14px;color:var(--mut)}
 .cp b{color:var(--ink)}
 
