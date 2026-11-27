@@ -9,7 +9,7 @@ const sh=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
 const weak=()=>Object.entries(P.keys).filter(([c,v])=>v.t>=5&&v.e/v.t>.05).sort((a,b)=>b[1].e/b[1].t-a[1].e/a[1].t).slice(0,3).map(x=>x[0]);
 
 // Ekranlarni almaştiriş: bir paytda faqat bittasi körinadi
-function show(v){$('#hd').hidden=v!='home'&&v!='tests';$('#home').hidden=v!='home';$('#tests').hidden=v!='tests';$('#pr').hidden=v!='pr';
+function show(v){$('#hd').hidden=v!='home'&&v!='tests';$('#home').hidden=v!='home';$('#tests').hidden=v!='tests';$('#pr').hidden=v!='pr';$('#ft').hidden=v=='pr';
  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',(b.dataset.v=='tests')==(v=='tests')));
  window.scrollTo(0,0)}
 

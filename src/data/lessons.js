@@ -3,7 +3,7 @@
    k - yangi harflar (har biri alohida örgatiladi), r - takrorlaş,
    p - şaxsiy maşq, a - baholaş.
    Har bir dars ekranlari: yozişga oid maşqlar + öyinlar.
-   QOİDA: har bir darsda öyinlar ekranlarning kamida 40% ini (va kamida 4 tasini) tashkil qiladi.
+   QOİDA: har bir darsda aynan GPL (4) ta öyin; qolgani — yozib maşq.
    Söz banki: faqat özbek tilida ma'noli sözlar (yangi alifboda).
    Provides: UN, ALL, mk, BANK, USED, pickN, wordsOf
    Depends: config.js
@@ -114,9 +114,13 @@ function wordsOf(pool,n){
 }
 
 // O'yin turlari: harf o'yinlari har doim bor; söz o'yinlari faqat söz yetarli bölganda
-const WG=['tiles','robot','race','climb','rocket'],LG=['tiles','climb'];
+// Darslarda aylanadigan öyinlar (har darsda 4 ta: plitkalar, robot ×2 (robot + climb), raketa).
+// Qolgan öyinlar öçirilmagan — GAMES (games.js) da turibdi, kerak bölsa RESERVE_G dan WG ga qaytariladi.
+const WG=['tiles','robot','climb','rocket'],LG=['tiles','climb'];
+const RESERVE_G=['race'];
 const okW=w=>/^[a-zçğöşʼ]{3,7}$/.test(w);
 let GI=0;
+const GPL=4;   // bir darsdagi öyinlar soni (4–5 yetadi; yozib maşq qilişga köproq vaqt qolsin)
 function mk(l,prev){
  if(l.p)return[{t:'p'}];if(l.a)return[{t:'a'}];
  const K=l.k||[],T=[];
@@ -127,8 +131,8 @@ function mk(l,prev){
   T.push(hasW?{t:'w'}:{t:'g'});
   if(K.length<3&&hasM)T.push({t:'m'});
  }else T.push({t:'m'},{t:'m'},{t:'m'},{t:'m'},{t:'m'});
- // Öyinlar: kamida 4 ta va ekranlarning kamida 40% i; tekis taqsimlanadi, öxirgisi öyin bölib tugaydi
- const G=Math.max(4,Math.ceil(T.length*2/3)),tot=T.length+G;
+ // Öyinlar: har darsda GPL (4) ta; yozib maşq ekranlari bilan tekis aralaşadi, öxirgisi öyin bölib tugaydi
+ const G=GPL,tot=T.length+G;
  const gl=WG,off=GI++;   // söz yetarli bölmasa ham barça öyin turlari işlaydi (söz ö'rniga harf bö'laklari beriladi)
  const known=prev.slice(),out=[];let ti=0,gi=0;
  for(let i=0;i<tot;i++){

@@ -187,6 +187,27 @@ td,th{padding:2px 12px;text-align:left}
 .tst div{background:#f1faff;border-radius:16px;padding:10px 20px;min-width:120px;color:var(--mut);font-size:14px}
 .tst b{display:block;font-size:36px;line-height:1.2;color:var(--skyd)}
 
+
+/* Pastki panel: mualliflar va kanallar */
+#ft{margin-top:8px;background:#fff;border-top:4px solid var(--sky);box-shadow:0 -4px 0 #cfe3f1}
+#ft .in{max-width:960px;margin:0 auto;padding:22px 20px 18px}
+#ft h3{margin:0 0 4px;font-size:20px}
+#ft p{margin:0 0 16px;font-size:15px}
+.ppl{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:16px}
+.pp{display:flex;align-items:center;gap:12px;background:#f1faff;border:2px solid var(--bd);border-radius:18px;padding:10px 14px}
+.pp img{width:52px;height:52px;border-radius:50%;object-fit:cover;flex:none;background:#fff;border:2px solid #fff;box-shadow:0 0 0 2px var(--bd)}
+.pp small{display:block;font-size:13px;color:var(--mut);line-height:1.3}
+.pp b{font-size:17px;line-height:1.3}
+.lnk{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.tgl{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;color:#fff;text-decoration:none;font-weight:700;font-size:15px;box-shadow:0 3px 0 rgba(0,0,0,.18);transition:transform .06s}
+.tgl svg{width:20px;height:20px;flex:none}
+.tgl:hover{filter:brightness(1.08)}
+.tgl:active{transform:translateY(2px);box-shadow:none}
+.tgl:focus-visible{outline:3px solid var(--skyd);outline-offset:2px}
+.tgl.a1{background:#a3202f}.tgl.a2{background:#1688c4}.tgl.a3{background:#e62117}
+.cp{border-top:2px solid var(--bd);padding-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;font-size:14px;color:var(--mut)}
+.cp b{color:var(--ink)}
+
 /* Yengil rejim */
 html.lite{scroll-behavior:auto}
 .lite *{transition:none!important}
