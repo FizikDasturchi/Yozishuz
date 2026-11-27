@@ -81,7 +81,7 @@ function toast(t){const d=document.createElement('div');d.className='toast';d.te
 function start(){
  clearInterval(S.iv);gStop();const s=CL.sc[CI];
  // t0 - birinçi bosiş vaqti, tl - öxirgi töğri bosiş vaqti (tezlik hisobi uçun)
- S={text:'',i:0,err:0,tot:0,t0:0,tl:0,done:false,bad:false,tm:s.t=='p'?120:s.t=='a'?60:0,find:s.t=='f',fc:s.c,found:false,gm:s.t=='G',game:null,lost:false,ending:0,endAt:0,resAt:0,tg:null,lvh:''};
+ S={text:'',i:0,wr:new Set(),err:0,tot:0,t0:0,tl:0,done:false,bad:false,tm:s.t=='p'?120:s.t=='a'?60:0,find:s.t=='f',fc:s.c,found:false,gm:s.t=='G',game:null,lost:false,ending:0,endAt:0,resAt:0,tg:null,lvh:''};
  if(!S.find&&!S.gm)S.text=gen();
  $('#res').hidden=true;$('#res').innerHTML='';$('#play').hidden=false;
  $('#gm').hidden=!S.gm;$('#gm').innerHTML='';
@@ -109,7 +109,7 @@ function paint(){
   if(S.found)$('#fgo').onclick=adv;
  }else{
   $('#fc').innerHTML='';
-  if(s.t=='d')$('#txt').innerHTML='<div class="bx">'+[...S.text].map((ch,j)=>`<span class="${j<S.i?'ok':j==S.i?(S.bad?'cur bad':'cur'):''}">${ch}</span>`).join('')+'</div>';
+  if(s.t=='d')$('#txt').innerHTML='<div class="bx">'+[...S.text].map((ch,j)=>`<span class="${j<S.i?(S.wr.has(j)?'bad':'ok'):j==S.i?'cur':''}">${ch}</span>`).join('')+'</div>';
   else paintTxt();
   const left=S.t0?Math.max(0,S.tm-(Date.now()-S.t0)/1000):S.tm;
   const lh=`<span>Tezlik: ${liveWpm(S)}</span><span>Aniqlik: ${S.tot?accOf(S):100}%</span>`+(S.tm?`<span>⏱ ${fmt(left)}</span>`:'')+`<span>★ ${starsTot()}</span><span>Ball: ${P.pts}</span>`;
@@ -136,8 +136,7 @@ function buildTxt(){
 function paintTxt(){
  if(S.wa==null||!S.sp||S.i<S.wa||S.i-S.wa>=70){S.wa=Math.max(0,S.i-12);buildTxt()}
  const a=S.wa;
- for(let x=S.pi;x<S.i;x++){const e=S.sp[x-a];if(e)e.className='ok'}
- const c=S.sp[S.i-a];if(c)c.className=S.bad?'cur bad':'cur';
+ for(let x=Math.min(S.pi,S.i);x<=Math.max(S.pi,S.i);x++){const e=S.sp[x-a];if(e)e.className=x<S.i?(S.wr.has(x)?'bad':'ok'):x==S.i?'cur':''}
  S.pi=S.i;
 }
 
@@ -152,7 +151,7 @@ function adv(){
 function finish(timeUp){
  if(S.done)return;S.done=true;clearInterval(S.iv);
  const s=CL.sc[CI],isG=s.t=='G',wpm=wpmOf(S,timeUp),acc=accOf(S);
- const okAcc=isG||acc>=PASS,okWpm=isG||wpm>=MIN_WPM,ok=okAcc&&okWpm&&S.i>0&&!S.lost;
+ const okAcc=isG||acc>=PASS,ok=okAcc&&S.i>0&&!S.lost;
  gStop();
  const stars=!ok?0:starsOf(acc);
  addStats(S,timeUp);
@@ -170,7 +169,7 @@ function finish(timeUp){
  $('#play').hidden=true;
  const r=$('#res');r.hidden=false;S.resAt=Date.now();window.scrollTo(0,0);
  const title=!ok?(isG?'Yutqazdingiz 💪':'Qayta urinib köring 💪'):stars==3?R(['Ajoyib! 🌟','Zör! 🌟','Barakalla! 🌟']):stars==2?'Yaxşi! 👏':'Ötdingiz! 👍';
- const need=[];if(!okAcc)need.push(`aniqlik kamida ${PASS}% bölişi kerak`);if(!okWpm)need.push(`tezlik kamida ${MIN_WPM} söz/daq bölişi kerak`);
+ const need=[];if(!okAcc)need.push(`aniqlik kamida ${PASS}% bölişi kerak`);
  const line=isG
   ?`Aniqligingiz <b>${acc}%</b>${ok?``:'<br><span class="mut">Hiç qiynalmang — yana bir urinib körasiz</span>'}`
   :`Tezligingiz <b>${wpm}</b> söz/daq, aniqligi <b>${acc}%</b>${ok?``:`<br><span class="mut">Davom etiş uçun ${need.join(', ')}</span>`}`;

@@ -113,19 +113,11 @@ button.sm{padding:4px 14px;font-size:15px}
 /* Qöllar (klaviatura üstida, yarim şaffof, haqiqiydek). Faol barmoq töliq rangga kiradi */
 #hsv{position:absolute;left:10px;top:10px;width:calc(100% - 20px);height:auto;aspect-ratio:15/6.9;overflow:visible;pointer-events:none;z-index:5}
 .hand{}
-.palm{fill:var(--skin);fill-opacity:.55;stroke:#c68c68;stroke-opacity:.45;stroke-width:.07;stroke-linejoin:round}
-.fg{opacity:.66}
-.fg path{fill:none;stroke-linecap:round;stroke-linejoin:round}
-.fo{stroke:#c28660}
-.fs{stroke:var(--skin)}
-.fh{stroke:#fff;stroke-opacity:.3}
-.fc{stroke:#a9693f;stroke-opacity:.32;stroke-width:.035}
-.nl{fill:#fff;fill-opacity:.5}
-.fg.on{opacity:.9}
-.fg.on2{opacity:.8}
-.fg.on .fs,.fg.on2 .fs{stroke:var(--fc)}
-.fg.on .fo,.fg.on2 .fo{stroke:#2a3b4d;stroke:color-mix(in srgb,var(--fc) 60%,#000)}
-.fg.on .nl,.fg.on2 .nl{fill-opacity:.65}
+.palm{fill:var(--skin);fill-opacity:.6;stroke:#b98462;stroke-opacity:.5;stroke-width:.06;stroke-linejoin:round}
+.fg .fs{fill:var(--skin);fill-opacity:.62;stroke:#b98462;stroke-opacity:.55;stroke-width:.055;stroke-linejoin:round}
+.fg .fh{fill:none;stroke:#fff;stroke-opacity:.35;stroke-width:.1;stroke-linecap:round;stroke-linejoin:round}
+.fg .fc{fill:none;stroke:#a9693f;stroke-opacity:.33;stroke-width:.03;stroke-linecap:round}
+.fg.on .fs,.fg.on2 .fs{fill:var(--fc);fill-opacity:.82;stroke:var(--fc);stroke:color-mix(in srgb,var(--fc) 60%,#000);stroke-opacity:.9}
 .col{fill:var(--fc);opacity:.2}
 
 /* Öyinlar (canvas — DOM animatsiyasi yöq, şuning uçun qotmaydi) */

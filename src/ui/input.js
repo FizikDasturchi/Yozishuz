@@ -25,6 +25,10 @@ addEventListener('keydown',e=>{
    finish();   // faqat natija oynasini körsatadi (yulduz va ballar körinadi); keyingisiga — yana ENTER
   }else if(S.find&&S.found){const b=$('#fgo');if(b)b.click()}
   return}
+ if(e.key=='Backspace'){
+  e.preventDefault();
+  if(S.done||S.find||S.gm||S.i<=0)return;
+  S.i--;S.wr.delete(S.i);paint();return}
  if(S.done||(S.find&&S.found))return;
  const c=charOf(e);if(c===null)return;
  e.preventDefault();
@@ -40,8 +44,10 @@ addEventListener('keydown',e=>{
  const tg=S.text[S.i],okk=c===tg;
  S.tot++;
  if(tg!==' '){const k=tg.toLowerCase(),v=P.keys[k]=P.keys[k]||{t:0,e:0};v.t++;if(!okk)v.e++}
- if(okk){S.bad=false;S.i++;S.tl=now;handsPress();if(S.i>=S.text.length){finish();return}}
- else{S.err++;S.bad=true;snd.bad();shake($('#txt'))}
+ if(okk){S.tl=now;handsPress()}
+ else{S.err++;S.wr.add(S.i);snd.bad();shake($('#txt'))}
+ S.i++;
+ if(S.i>=S.text.length){finish();return}
  paint();
 });
 

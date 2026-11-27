@@ -1,12 +1,11 @@
 /* ============================================================
    config.js — umumiy sozlamalar, klaviatura xaritasi, barmoqlar.
-   Provides: $, PASS, MIN_WPM, MAXP, GOAL, KEY, TH, KEYMAP, ROWS,
+   Provides: $, PASS, MAXP, GOAL, KEY, TH, KEYMAP, ROWS,
              lab, cap, codeOf, FG, fobj, fing
    ============================================================ */
 const $=s=>document.querySelector(s);
 
 const PASS=80;       // keyingi ekranga ötiş: eng kam aniqlik (%)
-const MIN_WPM=25;    // keyingi ekranga ötiş: eng kam tezlik (söz/daq, 1 söz = 5 belgi)
 const MAXP=2500;     // nihol uçun maksimal ball
 const GOAL=900;      // kunlik maqsad (soniya)
 const KEY='yozish.v3';
@@ -17,11 +16,11 @@ const KEYMAP={
  KeyW:['w','W','ş'],
  KeyC:['c','C','ç'],
  BracketLeft:['[','{','ö'],
- BracketRight:[']','}','ğ'],
+ Semicolon:[';',':','ğ'],
  Quote:["'",'"','ʼ']
 };
 const ROWS=[
- ['KeyQ','KeyW','KeyE','KeyR','KeyT','KeyY','KeyU','KeyI','KeyO','KeyP','BracketLeft','BracketRight'],
+ ['KeyQ','KeyW','KeyE','KeyR','KeyT','KeyY','KeyU','KeyI','KeyO','KeyP','BracketLeft'],
  ['KeyA','KeyS','KeyD','KeyF','KeyG','KeyH','KeyJ','KeyK','KeyL','Semicolon','Quote'],
  ['KeyZ','KeyX','KeyC','KeyV','KeyB','KeyN','KeyM','Comma','Period','Slash']
 ];
@@ -39,7 +38,7 @@ const FG=[
  ['ri','öng körsatkiç barmoq','KeyY KeyH KeyN KeyU KeyJ KeyM'],
  ['rm','öng örta barmoq','KeyI KeyK Comma'],
  ['rr','öng halqa barmoq','KeyO KeyL Period'],
- ['rp','öng kiçik barmoq','KeyP Semicolon Slash BracketLeft BracketRight Quote']
+ ['rp','öng kiçik barmoq','KeyP Semicolon Slash BracketLeft Quote']
 ];
 const fobj=c=>FG.find(x=>x[2].split(' ').includes(c));
 const fing=c=>{const f=fobj(c);return f?f[1]:''};

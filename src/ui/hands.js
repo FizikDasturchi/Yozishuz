@@ -14,14 +14,14 @@
 const MIRX=13.5; // çap qöl -> öng qöl: x' = 13.5 - x (F <-> J)
 // Çap qöl: [bo'g'im x, bo'g'im y, tag eni, uç eni, tinç holatdagi uç x, uç y]
 const HAND={
- p:[1.90,4.00,.78,.62,2.25,1.62],
- r:[3.00,4.20,.88,.68,3.25,1.62],
- m:[4.20,4.30,.92,.70,4.25,1.62],
- i:[5.40,4.15,.94,.72,5.25,1.62],
- t:[6.00,5.95,1.10,.86,6.25,3.72]
+ p:[2.00,3.70,.78,.66,2.15,1.35],
+ r:[3.05,3.50,.88,.74,3.20,1.15],
+ m:[4.20,3.45,.92,.76,4.25,1.05],
+ i:[5.30,3.60,.94,.78,5.30,1.30],
+ t:[6.10,5.70,1.08,.86,6.40,3.70]
 };
-// Kaft + bilak + tirsak (silliq egri çiziq bilan çiziladi)
-const PALM=[[1.45,4.3],[1.95,3.85],[3.0,3.95],[4.2,4.05],[5.4,3.95],[6.2,4.5],[6.5,5.4],[6.15,6.25],[5.6,7.0],[5.5,8.2],[2.7,8.2],[2.3,7.0],[1.75,5.8]];
+// Kaft + bilak + bilak ustuni (silliq egri çiziq bilan çiziladi)
+const PALM=[[1.5,4.2],[1.7,3.6],[2.6,3.4],[3.7,3.3],[4.8,3.3],[5.7,3.55],[6.3,4.2],[6.55,5.0],[6.3,6.0],[5.8,6.9],[5.6,8.2],[2.5,8.2],[2.3,6.8],[1.8,5.5]];
 const HIDS=['lt','lp','lr','lm','li','rt','rp','rr','rm','ri'];
 const FD={};     // barmoq id -> holati va SVG elementlari
 const HM={};     // qöl (l/r) -> kaftning siljişi
@@ -37,7 +37,7 @@ function smoothD(pts,mir){
  }
  return d+'Z';
 }
-const fingerSVG=id=>`<g class="fg f-${id[1]=='t'?'th':id}" data-f="${id}"><path class="fo"/><path class="fo"/><path class="fo"/><path class="fs"/><path class="fs"/><path class="fs"/><path class="fh"/><path class="fc"/><path class="fc"/><ellipse class="nl"/></g>`;
+const fingerSVG=id=>`<g class="fg f-${id[1]=='t'?'th':id}" data-f="${id}"><path class="fs"/><path class="fh"/><path class="fc"/><path class="fc"/></g>`;
 
 function handsBuild(){
  const svg=$('#hsv');if(!svg)return;
@@ -51,11 +51,12 @@ function handsBuild(){
  ['l','r'].forEach(s=>HM[s]={x:0,y:0,g:svg.querySelector(`[data-h="${s}"]`)});
  HIDS.forEach(id=>{
   const m=id[0]=='r',h=HAND[id[1]],g=svg.querySelector(`[data-f="${id}"]`);
-  const f=FD[id]={kx:m?MIRX-h[0]:h[0],ky:h[1],wb:h[2],wt:h[3],rx:m?MIRX-h[4]:h[4],ry:h[5],pulse:0,g,
-   fo:g.querySelectorAll('.fo'),fs:g.querySelectorAll('.fs'),fh:g.querySelector('.fh'),fc:g.querySelectorAll('.fc'),nl:g.querySelector('.nl')};
+  const f=FD[id]={kx:m?MIRX-h[0]:h[0],ky:h[1],wb:h[2],wt:h[3],rx:m?MIRX-h[4]:h[4],ry:h[5],pulse:0,bs:m?-1:1,g,
+   fs:g.querySelector('.fs'),fh:g.querySelector('.fh'),fc:g.querySelectorAll('.fc')};
   f.cx=f.rx;f.cy=f.ry;f.L0=Math.hypot(f.rx-f.kx,f.ry-f.ky);
   f.hcx=m?9.7:3.8;
  });
+ for(const id in FD)drawFinger(FD[id]);
  handsStep();
 }
 
@@ -90,27 +91,18 @@ function handsPress(){
 
 const S2=v=>v.toFixed(3);
 function drawFinger(f){
- const kx=f.kx,ky=f.ky,tx=f.cx,ty=f.cy+f.pulse*.16;
- const dx=tx-kx,dy=ty-ky,L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L,nx=-uy,ny=ux;
- const curl=Math.max(0,Math.min(.5,(f.L0-L)/f.L0));       // qancha bükilgan
- const wt=f.wt*(1+curl*.3);                                 // bükilsa uç kameraga yaqinlaşadi
- const P=[[kx,ky],[kx+dx*.38,ky+dy*.38],[kx+dx*.70,ky+dy*.70],[tx,ty]];
- const W=[f.wb,(f.wb+f.wt)/2,wt];
- for(let i=0;i<3;i++){
-  const d=`M${S2(P[i][0])} ${S2(P[i][1])}L${S2(P[i+1][0])} ${S2(P[i+1][1])}`;
-  f.fo[i].setAttribute('d',d);f.fo[i].setAttribute('stroke-width',S2(W[i]+.1));
-  f.fs[i].setAttribute('d',d);f.fs[i].setAttribute('stroke-width',S2(W[i]));
- }
- // yorug'lik çizig'i (yumaloqlik beradi)
- const o=-f.wb*.17;
- f.fh.setAttribute('d',`M${S2(kx+nx*o+ux*.5)} ${S2(ky+ny*o+uy*.5)}L${S2(tx+nx*o*.6-ux*wt*.45)} ${S2(ty+ny*o*.6-uy*wt*.45)}`);
- f.fh.setAttribute('stroke-width',S2(wt*.26));
- // bö'g'im burmalari
- for(let i=0;i<2;i++){const p=P[i+1],h=W[i+1>2?2:i+1]*.28;
-  f.fc[i].setAttribute('d',`M${S2(p[0]-nx*h)} ${S2(p[1]-ny*h)}L${S2(p[0]+nx*h)} ${S2(p[1]+ny*h)}`)}
- // tirnoq
- f.nl.setAttribute('rx',S2(wt*.27));f.nl.setAttribute('ry',S2(wt*.33));
- f.nl.setAttribute('transform',`translate(${S2(tx-ux*wt*.36)} ${S2(ty-uy*wt*.36)}) rotate(${(Math.atan2(dy,dx)*180/Math.PI+90).toFixed(1)})`);
+ const kx=f.kx,ky=f.ky,tx=f.cx,ty=f.cy+f.pulse*.16,dx=tx-kx,dy=ty-ky,L=Math.hypot(dx,dy)||1;
+ const curl=Math.max(0,Math.min(.5,(f.L0-L)/f.L0)),wt=f.wt*(1+curl*.25),bd=f.bs*(.1+curl*.9);   // bükilsa uç yo'ğonlaşadi va egiladi
+ const qx=(kx+tx)/2-dy/L*bd,qy=(ky+ty)/2+dx/L*bd,N=10,A=[],B=[],M=[];
+ for(let i=0;i<=N;i++){const t=i/N,u=1-t,x=u*u*kx+2*u*t*qx+t*t*tx,y=u*u*ky+2*u*t*qy+t*t*ty;
+  let ex=2*u*(qx-kx)+2*t*(tx-qx),ey=2*u*(qy-ky)+2*t*(ty-qy);const e=Math.hypot(ex,ey)||1;ex/=e;ey/=e;
+  const w=(f.wb+(wt-f.wb)*t)/2;
+  A.push(S2(x-ey*w)+' '+S2(y+ex*w));B.push(S2(x+ey*w)+' '+S2(y-ex*w));M.push([x,y,ex,ey,w])}
+ const r=S2(wt/2);
+ f.fs.setAttribute('d','M'+A.join('L')+'A'+r+' '+r+' 0 0 0 '+B[N]+'L'+B.slice(0,N).reverse().join('L')+'Z');
+ f.fh.setAttribute('d','M'+M.slice(1,8).map(m=>S2(m[0]+m[3]*m[4]*.38)+' '+S2(m[1]-m[2]*m[4]*.38)).join('L'));
+ [4,7].forEach((i,k)=>{const m=M[i],h=m[4]*.55;
+  f.fc[k].setAttribute('d',`M${S2(m[0]-m[3]*h)} ${S2(m[1]+m[2]*h)}L${S2(m[0]+m[3]*h)} ${S2(m[1]-m[2]*h)}`)});
 }
 function handsStep(){
  // qöl (kaft) uzanayotgan barmoq tomon sal siljiydi. Qaytaradi: harakat davom etyaptimi

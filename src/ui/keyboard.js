@@ -17,7 +17,7 @@ function kbHTML(tg){
  const key=c=>`<i class="k f-${fobj(c)[0]} ${ns.has(lab(c))?'n':''} ${c=='KeyF'||c=='KeyJ'?'hm':''} ${ac==c?'x':''}" data-c="${c}">${lab(c)}</i>`;
  const dk=(t,s)=>`<i class="k d" style="grid-column:span ${s}">${t}</i>`;
  const sk=(side,s)=>`<i class="k sh f-${side=='l'?'lp':'rp'} ${shiftSide==side?'x':''}" data-s="${side}" style="grid-column:span ${s}">shift</i>`;
- return `<div class="r">${dk('tab',6)}${ROWS[0].map(key).join('')}${dk('\\',6)}</div><div class="r">${dk('caps',7)}${ROWS[1].map(key).join('')}${dk('enter',9)}</div><div class="r">${sk('l',9)}${ROWS[2].map(key).join('')}${sk('r',11)}</div><div class="r"><i class="k sp f-th ${tg==' '?'x':''}">probel</i></div>`;
+ return `<div class="r">${dk('tab',6)}${ROWS[0].map(key).join('')}${dk('\\',10)}</div><div class="r">${dk('caps',7)}${ROWS[1].map(key).join('')}${dk('enter',9)}</div><div class="r">${sk('l',9)}${ROWS[2].map(key).join('')}${sk('r',11)}</div><div class="r"><i class="k sp f-th ${tg==' '?'x':''}">probel</i></div>`;
 }
 
 // Klaviatura bir marta quriladi (dars özgarganda), keyin faqat "faol tugma" belgisi ko'çiriladi —
