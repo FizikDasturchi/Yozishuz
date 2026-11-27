@@ -120,7 +120,10 @@ function paint(){
   else paintTxt();
   const left=S.t0?Math.max(0,S.tm-(Date.now()-S.t0)/1000):S.tm;
   const lh=CL.test?testLive():`<span>Tezlik: ${liveWpm(S)}</span><span>Aniqlik: ${S.tot?accOf(S):100}%</span>`+(S.tm?`<span>⏱ ${fmt(left)}</span>`:'')+`<span>★ ${starsTot()}</span><span>Ball: ${P.pts}</span>`;
-  if(lh!==S.lvh){S.lvh=lh;$('#lv').innerHTML=lh}
+  // Statistika paneli har bosişda emas, ençi bilan sekundiga ~5 marta yangilanadi (keyingi yangilanish kafolatlanadi)
+  if(lh!==S.lvh){const nw=performance.now();
+   if(!S.lvt||nw-S.lvt>180||S.done){S.lvt=nw;S.lvh=lh;$('#lv').innerHTML=lh}
+   else if(!S.lvo)S.lvo=setTimeout(()=>{S.lvo=0;if(!S.done&&!$('#pr').hidden)paint()},200)}
  }
  const tg=S.gm?(S.game?S.game.target():''):S.find?(S.found?'':S.fc):S.text[S.i];
  // Klaviatura va qöllar faqat kerakli belgi özgarganda yangilanadi (har bosişda butun klaviatura qayta qurilmaydi)
@@ -194,7 +197,12 @@ function finish(timeUp){
  $('#go').onclick=()=>{if(!ok)start();else if(last)exit();else{CI++;start()}};
 }
 function confetti(){const e=['⭐','🎉','✨','🌟','🎈'],f=document.createDocumentFragment();for(let i=0;i<16;i++){const d=document.createElement('div');d.className='cf';d.textContent=R(e);d.style.left=Math.random()*100+'vw';d.style.animationDelay=Math.random()*.8+'s';d.style.animationDuration=2+Math.random()*1.4+'s';f.appendChild(d);setTimeout(()=>d.remove(),4600)}document.body.appendChild(f)}
-function shake(el){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake')}
+// Silkinish: Web Animations — majburiy layout (offsetWidth) çaqirilmaydi, faqat transform (GPU) ishlatiladi
+const RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function shake(el){
+ if(LITE||RM||!el||!el.animate)return;
+ el.animate([{transform:'translateX(0)'},{transform:'translateX(-7px)',offset:.25},{transform:'translateX(7px)',offset:.75},{transform:'translateX(0)'}],{duration:250});
+}
 
 // Öyin tugadi (yutdi/yutqazdi): e'lon körsatiladi, keyin natija oynasi (ENTER bosilsa — darhol)
 function gameEnd(win){
