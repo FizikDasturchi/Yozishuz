@@ -24,4 +24,4 @@ setLite(LITE,false);
 handsBuild();
 home();
 authUI();
-if(TOK)api('me').then(j=>setU(j.u?{u:j.u}:null)).catch(()=>{});
+if(TOK){api('me').then(j=>{setU(j.u?{u:j.u}:null);contRefreshUI()}).catch(()=>{});setTimeout(contPrefetch,300)}

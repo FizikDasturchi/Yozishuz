@@ -25,7 +25,9 @@ function latinize(s){
     .replace(/sh/gi,m=>m==='SH'?'Ş':m==='Sh'?'Ş':'ş').replace(/ch/gi,m=>m==='CH'?'Ç':m==='Ch'?'Ç':'ç');
 }
 function norm(s){return latinize(s).toLowerCase().replace(/[ş]/g,'sh').replace(/[ç]/g,'ch').replace(/[ö]/g,'o').replace(/[ğ]/g,'g').replace(/[ʻʼ’‘`´]/g,'').replace(/[^a-z]/g,'');}
-function sheet(n){return SpreadsheetApp.openById(PR.getProperty('SS')).getSheetByName(n);}
+let SSO=null,SHT={};
+function ss(){return SSO||(SSO=SpreadsheetApp.openById(PR.getProperty('SS')));}
+function sheet(n){return SHT[n]||(SHT[n]=ss().getSheetByName(n));}
 let READ_CACHE={};
 function all(n){if(READ_CACHE[n])return READ_CACHE[n];const v=sheet(n).getDataRange().getValues(),h=v.shift();return READ_CACHE[n]=v.map((r,i)=>{const o={_r:i+2};h.forEach((k,j)=>o[k]=r[j]);return o;});}
 function invalidate(n){delete READ_CACHE[n];}
@@ -36,13 +38,22 @@ function sign(s){return Utilities.base64EncodeWebSafe(Utilities.computeHmacSha25
 function mkToken(uid){const b=uid+'.'+(Date.now()+30*864e5);return b+'.'+sign(b);}
 function auth(t){
   const p=String(t||'').split('.'); if(p.length!=3||sign(p[0]+'.'+p[1])!==p[2]||+p[1]<Date.now()) return null;
-  return all('Users').find(u=>u.id==p[0])||null;
+  const cc=CacheService.getScriptCache(),k='U'+p[0],hit=cc.get(k);
+  if(hit){try{return JSON.parse(hit);}catch(e){}}
+  const u=all('Users').find(x=>x.id==p[0]); if(!u) return null;
+  const lite={id:u.id,ism:u.ism,fam:u.fam,role:u.role};
+  cc.put(k,JSON.stringify(lite),600); return lite;
 }
+function dropU(id){try{CacheService.getScriptCache().remove('U'+id);}catch(e){}}
 const isAdm=u=>u&&(u.role=='admin'||u.role=='main');
 const pub=u=>({id:u.id,name:u.fam+' '+u.ism,role:u.role});
 function st(c,now){
   if(c.status=='running'&&c.endAt&&now>=+c.endAt){setCell('Contests',c._r,'status','ended');c.status='ended';}
   return c.status;
+}
+function lite(c,u,now,rs){
+  return {id:c.id,title:c.title,by:c.by,owner:!!(u&&String(u.id)===String(c.by)),plan:+c.plan,dur:+c.dur,state:st(c,now),startAt:+c.startAt,endAt:+c.endAt,file:!!c.fileName,
+    n:rs.filter(r=>r.cid==c.id).length,mine:!!(u&&rs.some(r=>r.cid==c.id&&r.uid==u.id))};
 }
 function doPost(e){
   let out,body;READ_CACHE={};
@@ -74,20 +85,19 @@ function route(b){
   }
   if(A=='me') return {ok:true,u:u?pub(u):null,now};
   if(A=='changePass'){
-    need(u,'Avval hisobga kiring'); const old=String(b.old||''),np=String(b.p||'');
-    need(old&&u.hash===hash(old,u.salt),'Eski parol notoʻgʻri'); need(np.length>=6,'Yangi parol kamida 6 belgi boʻlsin');
-    const salt=Utilities.getUuid(); setCell('Users',u._r,'salt',salt); setCell('Users',u._r,'hash',hash(np,salt)); return {ok:true};
+    need(u,'Avval hisobga kiring'); const old=String(b.old||''),np=String(b.p||''),fu=all('Users').find(x=>x.id==u.id); need(fu);
+    need(old&&fu.hash===hash(old,fu.salt),'Eski parol notoʻgʻri'); need(np.length>=6,'Yangi parol kamida 6 belgi boʻlsin');
+    const salt=Utilities.getUuid(); setCell('Users',fu._r,'salt',salt); setCell('Users',fu._r,'hash',hash(np,salt)); return {ok:true};
   }
   if(A=='contests'){
     const rs=all('Results');
-    return {ok:true,now,list:all('Contests').map(c=>({id:c.id,title:c.title,by:c.by,owner:!!(u&&String(u.id)===String(c.by)),plan:+c.plan,dur:+c.dur,state:st(c,now),startAt:+c.startAt,endAt:+c.endAt,file:!!c.fileName,n:rs.filter(r=>r.cid==c.id).length}))
-      .sort((a,z)=>a.plan-z.plan)};
+    return {ok:true,now,list:all('Contests').map(c=>lite(c,u,now,rs)).sort((a,z)=>a.plan-z.plan)};
   }
   if(A=='contest'){
     const c=all('Contests').find(x=>x.id==b.id); need(c,'Musobaqa topilmadi');
     const s=st(c,now),rs=all('Results').filter(r=>r.cid==c.id).sort((a,z)=>z.score-a.score);
     return {ok:true,now,c:{id:c.id,title:c.title,by:c.by,owner:!!(u&&String(u.id)===String(c.by)),plan:+c.plan,dur:+c.dur,state:s,startAt:+c.startAt,endAt:+c.endAt,fileName:c.fileName,
-      text:(u&&s=='running'&&now>=+c.startAt-500)?c.text:undefined},
+      text:(u&&String(u.id)!==String(c.by)&&s=='running'&&now>=+c.startAt-3000)?c.text:undefined},
       board:rs.map(r=>({name:r.name,wpm:r.wpm,acc:r.acc,score:r.score})),mine:!!(u&&rs.some(r=>r.uid==u.id))};
   }
   if(A=='users'){
@@ -97,13 +107,13 @@ function route(b){
   if(A=='setRole'){
     need(u&&u.role=='main','Faqat asosiy adminlar'); need(b.role=='admin'||b.role=='user');
     const x=all('Users').find(r=>r.id==b.id); need(x&&x.role!='main','Asosiy adminning rolini özgartirib bölmaydi');
-    setCell('Users',x._r,'role',b.role); return {ok:true};
+    setCell('Users',x._r,'role',b.role); dropU(x.id); return {ok:true};
   }
   if(A=='deleteUser'){
     need(u&&u.role=='main','Faqat asosiy adminlar');
     const x=all('Users').find(r=>r.id==b.id); need(x&&x.role!='main','Asosiy adminni öçirib bölmaydi');
     const rs=all('Results').filter(r=>r.uid==x.id).map(r=>r._r).reverse(); rs.forEach(r=>sheet('Results').deleteRow(r));invalidate('Results');
-    sheet('Users').deleteRow(x._r);invalidate('Users'); return {ok:true};
+    sheet('Users').deleteRow(x._r);invalidate('Users'); dropU(x.id); return {ok:true};
   }
   if(A=='create'){
     need(isAdm(u)); const title=latinize(String(b.title||'').trim()),text=latinize(String(b.text||'').trim());
@@ -112,14 +122,20 @@ function route(b){
     if(b.file){need(b.file.b64.length<7e6,'Fayl 5 MB dan oşmasin');
       const f=DriveApp.getFolderById(PR.getProperty('FILES')).createFile(Utilities.newBlob(Utilities.base64Decode(b.file.b64),b.file.mime,b.file.name));
       fileId=f.getId();fileName=b.file.name;}
-    put('Contests',{id:Utilities.getUuid(),title,text,fileId,fileName,plan:+b.plan,dur:0,status:'waiting',startAt:0,endAt:0,by:u.id,created:now});
-    return {ok:true};
+    const nc={id:Utilities.getUuid(),title,text,fileId,fileName,plan:+b.plan,dur:0,status:'waiting',startAt:0,endAt:0,by:u.id,created:now};
+    put('Contests',nc);
+    return {ok:true,c:lite(nc,u,now,[])};
   }
   if(A=='approve'||A=='endNow'||A=='del'){
     need(isAdm(u)); const c=all('Contests').find(x=>x.id==b.id); need(c,'Topilmadi'); const s=st(c,now);
-    if(A=='approve'){need(u.id==c.by,'Faqat musobaqa tashkilotchisi tasdiqlashi mumkin'); need(s=='waiting','Allaqaçon boşlangan');
-      setCell('Contests',c._r,'status','running');setCell('Contests',c._r,'startAt',now+CD);setCell('Contests',c._r,'endAt',0);}
-    if(A=='endNow'){need(s=='running');setCell('Contests',c._r,'status','ended');setCell('Contests',c._r,'endAt',now);}
+    const cols=H.Contests.indexOf('status')+1;   // status, startAt, endAt — yonma-yon ustunlar: bitta yozuv bilan özgartiriladi
+    if(A=='approve'){
+      need(String(u.id)===String(c.by),'Faqat musobaqa tashkilotchisi tasdiqlashi mumkin'); need(s=='waiting','Allaqaçon boşlangan');
+      const sa=now+CD; sheet('Contests').getRange(c._r,cols,1,3).setValues([['running',sa,0]]); invalidate('Contests');
+      return {ok:true,startAt:sa};
+    }
+    need(String(u.id)===String(c.by)||u.role=='main','Faqat tashkilotçi yoki asosiy admin');
+    if(A=='endNow'){need(s=='running'); sheet('Contests').getRange(c._r,cols,1,3).setValues([['ended',+c.startAt,now]]); invalidate('Contests');}
     if(A=='del'){
       if(c.fileId){try{DriveApp.getFileById(c.fileId).setTrashed(true);}catch(e){}}
       const rs=all('Results').filter(r=>r.cid==c.id).map(r=>r._r).reverse(); rs.forEach(r=>sheet('Results').deleteRow(r));invalidate('Results');
