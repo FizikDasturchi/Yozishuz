@@ -9,7 +9,8 @@ const sh=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
 const weak=()=>Object.entries(P.keys).filter(([c,v])=>v.t>=5&&v.e/v.t>.05).sort((a,b)=>b[1].e/b[1].t-a[1].e/a[1].t).slice(0,3).map(x=>x[0]);
 
 // Ekranlarni almaştiriş: bir paytda faqat bittasi körinadi
-function show(v){curV=v=='pr'?curV:v;$('#hd').hidden=v=='pr';['home','tests','add','cont','usr'].forEach(x=>$('#'+x).hidden=x!=v);$('#pr').hidden=v!='pr';$('#ft').hidden=v=='pr';
+function show(v){curV=v=='pr'?curV:v;if(v!='pr'){try{sessionStorage.setItem('yozish.v',v)}catch(e){}}   // F5 qilinganda şu bölimda qolişi uçun
+ $('#hd').hidden=v=='pr';['home','tests','add','cont','usr'].forEach(x=>$('#'+x).hidden=x!=v);$('#pr').hidden=v!='pr';$('#ft').hidden=v=='pr';
  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==v));
  window.scrollTo(0,0)}
 
@@ -38,7 +39,6 @@ function home(){
  $('#units').innerHTML=UN.map((u,ui)=>`<div class="uh u${ui%5}">${u.t}</div>`+u.ls.map(l=>{
   const i=n++,o=opened(i),d=dn(l);
   return `<div class="ls ${i==cur?'cur':''} ${o?'':'lock'}" id="L${i}"><div class="lt"><span class="no">${i+1}</span>${l.t}${l.p?' · 2:00':l.a?' · 1:00':''}${starsOfLesson(l)?`<span class="lst">★ ${starsOfLesson(l)}</span>`:''}<button class="${i==cur?'pri':''}" data-i="${i}" ${o?'':'disabled'}>${!o?'🔒':d==0?'Boşlaş':d<l.sc.length?'Davom etiş':'Qayta'}</button></div><div class="sg">${l.sc.map((_,j)=>`<i class="${j<d?'f':''}"></i>`).join('')}</div></div>`}).join('')).join('');
- const e=$('#L'+cur);if(e&&cur>0)e.scrollIntoView({block:'center'});
 }
 
 /* ---------- Maşq ---------- */

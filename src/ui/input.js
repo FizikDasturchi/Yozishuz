@@ -46,14 +46,16 @@ function typeKey(c,now){
  if(S.find){
   if(c===S.fc){S.found=true;S.bad=false;handsPress();snd.ding()}else{S.bad=true;snd.bad();shake($('#fc'))}
   paint();return}
- if(!S.t0){S.t0=now;S.tl=now;if(S.tm||CL.test)S.iv=setInterval(()=>{paint();if(S.tm&&Date.now()-S.t0>=S.tm*1000)finish(true)},500)}
+ if(!S.t0){S.t0=now;S.tl=now;if(S.tm||CL.test)S.iv=setInterval(()=>{paint();if(S.tm&&Date.now()-S.t0>=S.tm*1000)finish(true)},250)}
+ // Vaqt tugagan bö'lsa, taymer hali işlamagan bö'lsa ham bu bosiş hisobga olinmaydi (aks holda tezlik sun'iy oşadi)
+ if(S.tm&&now-S.t0>=S.tm*1000){finish(true);return}
  const tg=S.text[S.i],okk=c===tg;
  S.tot++;
  if(tg!==' '&&!S.tk){const k=tg.toLowerCase(),v=P.keys[k]=P.keys[k]||{t:0,e:0};v.t++;if(!okk)v.e++}
  if(okk){S.tl=now;if(!CL.test)handsPress()}
  else{S.err++;S.wr.add(S.i);snd.bad();shake($('#txt'))}
  S.i++;
- if(S.i>=S.text.length){finish();return}
+ if(S.i>=S.text.length){S.tl=now;finish();return}   // öxirgi bosiş (töğri bö'lsa ham, xato bö'lsa ham) vaqtga kiradi
  paint();
 }
 

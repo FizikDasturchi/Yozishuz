@@ -20,7 +20,7 @@ const HAND={
  t:[5.80,6.00,1.20,.98,6.40,3.80]
 };
 // Kaft + bilak: barmoq asoslari ostida yaxlit (barmoqlar şu shaklga qo'şilib ketadi)
-const PALM=[[1.45,4.3],[1.55,3.7],[2.3,3.45],[3.1,3.4],[4.2,3.35],[5.3,3.45],[6.0,3.9],[6.45,4.8],[6.35,5.8],[5.9,6.8],[5.7,8.2],[2.4,8.2],[2.2,6.8],[1.6,5.5]];
+const PALM=[[1.5,4.4],[1.6,3.8],[2.3,3.55],[3.1,3.5],[4.2,3.45],[5.3,3.55],[6.0,4.0],[6.5,4.9],[6.4,5.9],[5.7,6.9],[5.3,8.2],[2.9,8.2],[2.5,7.0],[1.75,5.7],[1.45,5.0]];
 const HIDS=['lt','lp','lr','lm','li','rt','rp','rr','rm','ri'];
 const FD={};     // barmoq id -> holati va SVG elementlari
 const HM={};     // qöl (l/r) -> kaftning siljişi
@@ -37,22 +37,24 @@ function smoothD(pts,mir){
  return d+'Z';
 }
 const NAILD='M-.5 .34Q-.5 .5 -.34 .5L.34 .5Q.5 .5 .5 .34L.5 -.12C.5 -.42 .28 -.5 0 -.5C-.28 -.5 -.5 -.42 -.5 -.12Z';
-const fingerSVG=id=>`<g class="fg f-${id}" data-f="${id}"><path class="fs"/><path class="fa"/><path class="fc"/><path class="fc"/><path class="nail" d="${NAILD}"/></g>`;
+const fingerSVG=id=>`<g class="fg f-${id}" data-f="${id}"><path class="fs"/><path class="fa"/><path class="fh"/><path class="fc"/><path class="fc"/><path class="nail" d="${NAILD}"/></g>`;
 
 function handsBuild(){
  const svg=$('#hsv');if(!svg)return;
  let o='<defs><linearGradient id="skinGrad" gradientUnits="userSpaceOnUse" x1="0" y1="1" x2="0" y2="8.2"><stop offset="0" stop-color="#f4d2b8"/><stop offset=".5" stop-color="#ebb996"/><stop offset="1" stop-color="#d99b78"/></linearGradient><linearGradient id="nailGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdeee8"/><stop offset="1" stop-color="#efc3b3"/></linearGradient></defs><rect class="col" id="hcol" x="0" y="0" width="1" height="1" rx=".14" style="display:none"/>';
  ['l','r'].forEach(s=>{
   const fl=HIDS.filter(id=>id[0]==s),pd=smoothD(PALM,s=='r');
+  const mx=x=>s=='r'?MIRX-x:x,kn=[2.0,3.1,4.2,5.3].map(x=>{const X=mx(x);return `M${X-.34} 4.38Q${X} 4.16 ${X+.34} 4.38`}).join(''),
+   cr=`M${mx(2.2)} 5.2Q${mx(3.6)} 5.55 ${mx(5.9)} 5.0M${mx(2.0)} 6.0Q${mx(3.4)} 6.4 ${mx(5.2)} 6.0`;
   // .ol — yagona tashqi kontur (barmoqlar va kaft birlashgan), .fl — ustidan bir xil teri rangi
-  o+=`<g class="hand" data-h="${s}"><g class="ol"><path class="po" d="${pd}"/>${fl.map(id=>`<path class="fo f-${id}" data-o="${id}"/>`).join('')}</g><g class="fl"><path class="palm" d="${pd}"/>${fl.map(fingerSVG).join('')}</g></g>`;
+  o+=`<g class="hand" data-h="${s}"><g class="ol"><path class="po" d="${pd}"/>${fl.map(id=>`<path class="fo f-${id}" data-o="${id}"/>`).join('')}</g><g class="fl"><path class="palm" d="${pd}"/><path class="kn" d="${kn}"/><path class="cr" d="${cr}"/>${fl.map(fingerSVG).join('')}</g></g>`;
  });
  svg.innerHTML=o;
  ['l','r'].forEach(s=>HM[s]={x:0,y:0,g:svg.querySelector(`[data-h="${s}"]`)});
  HIDS.forEach(id=>{
   const m=id[0]=='r',h=HAND[id[1]],g=svg.querySelector(`[data-f="${id}"]`);
   const f=FD[id]={kx:m?MIRX-h[0]:h[0],ky:h[1],wb:h[2],wt:h[3],rx:m?MIRX-h[4]:h[4],ry:h[5],pulse:0,bs:m?-1:1,g,
-   fs:g.querySelector('.fs'),fa:g.querySelector('.fa'),o:svg.querySelector('[data-o="'+id+'"]'),fc:g.querySelectorAll('.fc'),na:g.querySelector('.nail')};
+   fs:g.querySelector('.fs'),fa:g.querySelector('.fa'),fh:g.querySelector('.fh'),o:svg.querySelector('[data-o="'+id+'"]'),fc:g.querySelectorAll('.fc'),na:g.querySelector('.nail')};
   f.cx=f.rx;f.cy=f.ry;f.L0=Math.hypot(f.rx-f.kx,f.ry-f.ky);
   f.hcx=m?9.7:3.8;
  });
@@ -100,7 +102,8 @@ function drawFinger(f){
   A.push(S2(x-ey*w)+' '+S2(y+ex*w));B.push(S2(x+ey*w)+' '+S2(y-ex*w));M.push([x,y,ex,ey,w])}
  const r=S2(wt/2),arc='A'+r+' '+r+' 0 0 0 '+B[N],rb=S2(f.wb/2),d='M'+A.join('L')+arc+'L'+B.slice(0,N).reverse().join('L')+'A'+rb+' '+rb+' 0 0 0 '+A[0]+'Z';   // asosi ham yumaloq — kaftga silliq qo'şiladi
  f.fs.setAttribute('d',d);f.o.setAttribute('d',d);
- f.fa.setAttribute('d','M'+A.slice(5).join('L')+arc+'L'+B.slice(5,N).reverse().join('L')+'Z');   // faqat barmoq uçi rangga kiradi (qölning qolgan qismi teri rangida)
+ f.fa.setAttribute('d','M'+A.slice(1).join('L')+arc+'L'+B.slice(1,N).reverse().join('L')+'Z');   // faol barmoq tubidan uçigaça TÖLIQ rangga kiradi
+ f.fh.setAttribute('d','M'+M.slice(1,N).map(m=>S2(m[0]+m[3]*m[4]*.34)+' '+S2(m[1]-m[2]*m[4]*.34)).join('L'));   // yorug' çiziq — barmoq yumaloq körinadi
  // Tirnoq: uçda, barmoq yönalişi bo'yicha (bükilganda barmoq bilan birga buriladi)
  const ang=Math.atan2(dy,dx)*180/Math.PI+90,nw=wt*.58,nh=wt*.66,nx=tx-dx/L*(wt*.5-nh*.42),ny=ty-dy/L*(wt*.5-nh*.42);
  f.na.setAttribute('transform',`translate(${S2(nx)} ${S2(ny)}) rotate(${S2(ang)}) scale(${S2(nw)} ${S2(nh)})`);
@@ -114,7 +117,7 @@ function handsStep(){
  const tg={l:[0,0],r:[0,0]};
  [[HA.act,1],[HA.sft,.5]].forEach(([id,w])=>{
   if(!id||!FD[id]||!HT[id])return;
-  const f=FD[id],t=HT[id],k=(id[1]=='t'?.18:.5)*w;
+  const f=FD[id],t=HT[id],k=(id[1]=='t'?.15:.32)*w;
   tg[id[0]]=[(t[0]-f.rx)*k*.8,(t[1]-f.ry)*k];
  });
  ['l','r'].forEach(s=>{const h=HM[s];

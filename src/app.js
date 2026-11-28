@@ -21,7 +21,10 @@ function setLite(v,remember){
 }
 $('#lt').onclick=()=>setLite(!LITE,true);
 setLite(LITE,false);
+let V0='home';try{V0=sessionStorage.getItem('yozish.v')||'home'}catch(e){}   // yangilashdan oldingi bölim
+try{history.scrollRestoration='manual'}catch(e){}
 handsBuild();
 home();
+if(V0!=='home'&&['tests','add','cont','usr'].includes(V0))navTo(V0);
 authUI();
 if(TOK){api('me').then(j=>{setU(j.u?{u:j.u}:null);contRefreshUI()}).catch(()=>{});setTimeout(contPrefetch,300)}

@@ -117,11 +117,14 @@ button.sm{padding:4px 14px;font-size:15px}
 #hsv{position:absolute;left:10px;top:10px;width:calc(100% - 20px);height:auto;aspect-ratio:15/8.2;overflow:visible;pointer-events:none;z-index:5;visibility:visible}
 @media(max-width:560px){#hsv{left:6px;top:8px;width:calc(100% - 12px)}}
 .hand{}
-.po,.fo{fill:none;stroke:#8f5b3f;stroke-width:.15;stroke-linejoin:round;stroke-linecap:round}
+.po,.fo{fill:none;stroke:#a9714f;stroke-width:.1;stroke-linejoin:round;stroke-linecap:round}
 .fo.on{stroke:#2a3b4d;stroke:color-mix(in srgb,var(--fc) 55%,#000)}
 .palm,.fg .fs{fill:url(#skinGrad);stroke:none}
 .fg .fa{fill:var(--fc);opacity:0}
-.fg.on .fa,.fg.on2 .fa{opacity:.72}
+.fg .fh{fill:none;stroke:#fff;stroke-opacity:.24;stroke-width:.14;stroke-linecap:round;stroke-linejoin:round}
+.kn{fill:none;stroke:#a56b49;stroke-opacity:.35;stroke-width:.05;stroke-linecap:round}
+.cr{fill:none;stroke:#a56b49;stroke-opacity:.22;stroke-width:.05;stroke-linecap:round}
+.fg.on .fa,.fg.on2 .fa{opacity:.85}
 .fg .fc{fill:none;stroke:#9a5f3c;stroke-opacity:.3;stroke-width:.035;stroke-linecap:round}
 .fg .nail{fill:url(#nailGrad);stroke:#c58f7d;stroke-width:1px;vector-effect:non-scaling-stroke}
 .col{fill:var(--fc);opacity:.2}
