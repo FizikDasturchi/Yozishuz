@@ -70,6 +70,17 @@ let curV='home';
 function navTo(v){curV=v;contStop();({home,tests,addView,contView,usrView})[v==='home'?'home':v==='tests'?'tests':v==='add'?'addView':v==='cont'?'contView':'usrView']()}
 function gate(v,html){show(v);if(!U){$('#'+v).innerHTML=`<section class="card"><h2>Bu bölim faqat röyhatdan ötganlar uçun</h2><p><button class="pri" id="gb">Kirish / Röyhatdan ötiş</button></p></section>`;$('#gb').onclick=()=>login();return false}return true}
 
+/* ---------- Oyna (dialog): yuqori öngda ✕ tugmasi va oynadan taşqarini bosganda yopiladi ---------- */
+(()=>{
+ const d=$('#dg');
+ const ensureX=()=>{if(d.querySelector(':scope>.dx'))return;const b=document.createElement('button');b.type='button';b.className='dx';b.textContent='✕';b.title='Yopiş';b.setAttribute('aria-label','Yopiş');b.onclick=()=>d.close();d.prepend(b)};
+ new MutationObserver(ensureX).observe(d,{childList:true});   // oyna ichi qayta çizilsa ham ✕ qaytadan qöyiladi
+ d.addEventListener('click',e=>{
+  if(e.target!==d)return;const r=d.getBoundingClientRect();
+  if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();
+ });
+})();
+
 /* ---------- Matn tanlaş (Qöşiş va Musobaqa uçun umumiy) ---------- */
 const PDFJS='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',PDFW='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',MAM='https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';
 const lib=u=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=()=>no(new Error('Kutubxona yuklanmadi'));document.head.appendChild(s)});
