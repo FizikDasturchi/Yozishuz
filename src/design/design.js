@@ -116,19 +116,14 @@ button.sm{padding:4px 14px;font-size:15px}
 #kbs{position:relative}
 #hsv{position:absolute;left:10px;top:10px;width:calc(100% - 20px);height:auto;aspect-ratio:15/8.2;overflow:visible;pointer-events:none;z-index:5;visibility:visible}
 @media(max-width:560px){#hsv{left:6px;top:8px;width:calc(100% - 12px)}}
-.hand{opacity:.96}
-.po,.fo{fill:none;stroke:#b07a58;stroke-width:.14;stroke-linejoin:round}
+.hand{}
+.po,.fo{fill:none;stroke:#8f5b3f;stroke-width:.15;stroke-linejoin:round;stroke-linecap:round}
 .fo.on{stroke:#2a3b4d;stroke:color-mix(in srgb,var(--fc) 55%,#000)}
-.palm{fill:url(#skinGrad);stroke:#b47b59;stroke-width:.055;stroke-linejoin:round;filter:drop-shadow(.04px .07px .04px rgba(91,49,30,.28))}
-.fg .fs{fill:url(#fingerGrad);stroke:#b47b59;stroke-width:.045;stroke-linejoin:round}
-.fg.on .fs,.fg.on2 .fs{fill:color-mix(in srgb,var(--skin) 35%,var(--fc) 65%)}
-.tn{fill:none;stroke:#b07a58;stroke-opacity:.2;stroke-width:.05;stroke-linecap:round}
-.fg .fa{fill:var(--fc);opacity:.18}
-.fg.on .fa,.fg.on2 .fa{opacity:.92}
-.fg .fh{fill:none;stroke:#fff;stroke-opacity:.35;stroke-width:.1;stroke-linecap:round;stroke-linejoin:round}
-.fg .fc{fill:none;stroke:#a9693f;stroke-opacity:.42;stroke-width:.045;stroke-linecap:round}
-.fg .nail{fill:url(#nailGrad);stroke:#c48d78;stroke-width:.035;opacity:.96}
-.po,.fo{stroke:#9e694c;stroke-width:.11;stroke-linejoin:round}
+.palm,.fg .fs{fill:url(#skinGrad);stroke:none}
+.fg .fa{fill:var(--fc);opacity:0}
+.fg.on .fa,.fg.on2 .fa{opacity:.72}
+.fg .fc{fill:none;stroke:#9a5f3c;stroke-opacity:.3;stroke-width:.035;stroke-linecap:round}
+.fg .nail{fill:url(#nailGrad);stroke:#c58f7d;stroke-width:1px;vector-effect:non-scaling-stroke}
 .col{fill:var(--fc);opacity:.2}
 
 /* Öyinlar (canvas — DOM animatsiyasi yöq, şuning uçun qotmaydi) */
@@ -240,7 +235,7 @@ td,th{padding:2px 12px;text-align:left}
 /* Yengil rejim */
 html.lite{scroll-behavior:auto}
 .lite *{transition:none!important}
-.lite #hsv,.lite .col{display:none!important}
+
 .lite .cf{display:none}
 .lite .k.x{transform:none;box-shadow:none}
 .lite .shake{animation:none}

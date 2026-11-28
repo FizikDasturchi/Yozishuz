@@ -91,7 +91,7 @@ function start(){
  if(!S.find&&!S.gm)S.text=gen();
  $('#res').hidden=true;$('#res').innerHTML='';$('#play').hidden=false;
  $('#gm').hidden=!S.gm;$('#gm').innerHTML='';
- $('#hsv').style.display=(S.gm||LITE||CL.test)?'none':'';
+ $('#hsv').style.display=CL.test?'none':'';
 
  $('#kbs').hidden=!!CL.test;$('#hint').innerHTML='';   // sinovda klaviatura va qöllar körsatilmaydi
  $('#ex').textContent=CL.test?'« Sinov':'« Darslar';
@@ -134,7 +134,7 @@ function paint(){
  if(!CL.test&&(tg!==S.tg||S.find)){
   S.tg=tg;
   kbSet(tg);
-  if(!S.gm)handsSet(tg);
+  handsSet(tg);
   let h='';
   if(tg){if(tg==' ')h='Probel — bosh barmoq bilan';else{const c=codeOf[tg.toLowerCase()];h=`<b>${tg}</b> — `+(c?`<b>${cap(c)}</b> tugmasi`:'belgi')+(c&&tg!==tg.toLowerCase()?' + Shift':'')+(c?` · <span class="mut">${fing(c)}</span>`:'')}}
   $('#hint').innerHTML=h;
